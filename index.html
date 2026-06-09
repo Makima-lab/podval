@@ -71,6 +71,17 @@
   .modal{position:fixed;inset:0;background:#000b;display:grid;place-items:center;z-index:50;padding:20px;backdrop-filter:blur(3px)}
   .modal .box{position:relative;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--gold);border-radius:16px;padding:24px;max-width:350px;width:100%;animation:fadeUp .3s}
   .pill{display:inline-flex;align-items:center;gap:5px;background:rgba(212,175,55,.12);border:1px solid var(--goldDk);color:var(--gold);border-radius:20px;padding:3px 10px;font-size:10.5px;font-weight:700}
+  /* псевдо-3D карточка персонажа */
+  .hero3d{position:relative;border-radius:18px;padding:22px 16px 18px;text-align:center;overflow:hidden;background:radial-gradient(ellipse at 50% 0%,rgba(200,16,46,.18),transparent 60%),linear-gradient(165deg,#221a20,#0e0a0d 80%);border:1px solid var(--goldDk);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 40px rgba(0,0,0,.6)}
+  .hero3d-glow{position:absolute;inset:0;background:conic-gradient(from 0deg at 50% 40%,transparent,rgba(212,175,55,.10),transparent 30%);animation:spin360 12s linear infinite;pointer-events:none}
+  @keyframes spin360{to{transform:rotate(360deg)}}
+  .hero3d-av{position:relative;width:130px;height:160px;margin:0 auto;border-radius:16px;background:linear-gradient(180deg,#2a2028,#161015);border:1px solid var(--line);display:grid;place-items:center;box-shadow:0 12px 30px rgba(0,0,0,.7),inset 0 0 30px rgba(212,175,55,.06);transform:perspective(600px) rotateX(4deg)}
+  .hero3d-silhouette{font-size:74px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.6))}
+  .hero3d-lvl{position:absolute;top:14px;right:14px;background:linear-gradient(180deg,var(--goldLt),var(--gold));color:#2a1f06;font-family:Cinzel;font-weight:900;font-size:12px;padding:3px 10px;border-radius:20px;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+  .hero3d-name{font-family:Cinzel;font-size:19px;font-weight:900;margin-top:14px;letter-spacing:.5px}
+  .hero3d-power{font-size:12px;color:var(--gold);margin-top:3px}
+  .slot{position:relative;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid var(--line);border-radius:12px;padding:9px 4px;text-align:center;cursor:pointer;transition:.15s}
+  .slot:active{transform:scale(.95)}
 </style>
 </head>
 <body>
@@ -94,6 +105,40 @@ const WHEEL=[{t:"Spank x10",bad:true,rare:false},{t:"Good Boy",bad:false,rare:fa
 const MOVES=[{name:"Whip Strike",dmg:[12,22],type:"Domme",color:"var(--blood)"},{name:"Leash Grab",dmg:[8,16],type:"Control",color:"var(--violet)"},{name:"Gachi Slam ♂",dmg:[15,28],type:"Brutal",color:"var(--gold)"},{name:"Heel!",dmg:[6,12],type:"Will",color:"var(--goldLt)"},{name:"Seal of Submission",dmg:[10,20],type:"Cult",color:"var(--bloodDk)"}];
 const ELITE_COUNCIL=5;
 
+// ===== RPG: редкость, слоты, каталог шмота =====
+const RARITY={
+  common:{n:"Обычный",c:"#9aa0a6",mult:1},
+  rare:{n:"Редкий",c:"#3b82f6",mult:1.6},
+  epic:{n:"Эпический",c:"#a855f7",mult:2.4},
+  legend:{n:"Легендарный",c:"#d4af37",mult:3.5}
+};
+const SLOTS=[["head","Голова","🎭"],["body","Тело","🦺"],["weapon","Оружие","🔱"],["collar","Ошейник","⛓"],["thong","Стринги","👙"]];
+// каталог шмота: id, имя, слот, редкость, бонусы
+const GEAR=[
+  {id:"g1",n:"Кожаная маска",slot:"head",r:"common",str:2,def:3,spd:0},
+  {id:"g2",n:"Капюшон ниндзя",slot:"head",r:"rare",str:4,def:5,spd:3},
+  {id:"g3",n:"Корона Госпожи",slot:"head",r:"legend",str:8,def:8,spd:6},
+  {id:"g4",n:"Жилет с шипами",slot:"body",r:"common",str:3,def:4,spd:-1},
+  {id:"g5",n:"Латексный костюм",slot:"body",r:"epic",str:7,def:9,spd:4},
+  {id:"g6",n:"Плеть",slot:"weapon",r:"common",str:5,def:0,spd:2},
+  {id:"g7",n:"Шипованная булава",slot:"weapon",r:"rare",str:9,def:1,spd:0},
+  {id:"g8",n:"Бензопила Макимы",slot:"weapon",r:"legend",str:15,def:2,spd:3},
+  {id:"g9",n:"Стальной ошейник",slot:"collar",r:"common",str:1,def:4,spd:0},
+  {id:"g10",n:"Ошейник с сердцем",slot:"collar",r:"epic",str:4,def:7,spd:5},
+  {id:"g11",n:"Стринги «Корона»",slot:"thong",r:"legend",str:6,def:6,spd:10},
+  {id:"g12",n:"Стринги «Енот»",slot:"thong",r:"rare",str:3,def:3,spd:6},
+];
+function gearById(id){return GEAR.find(g=>g.id===id);}
+// боевая мощь = база статов + уровень + бонусы надетого шмота
+function powerOf(s){
+  let str=s.str||10,def=s.def||10,spd=s.spd||10;
+  const eq=s.equipped||{};
+  Object.values(eq).forEach(id=>{const g=gearById(id);if(g){str+=g.str;def+=g.def;spd+=g.spd;}});
+  const lvlBonus=(s.lvl||1)*3;
+  return {str:str+lvlBonus,def:def+lvlBonus,spd:spd+lvlBonus,total:Math.round((str+def+spd)*1.0+lvlBonus*3)};
+}
+function xpForNext(lvl){return lvl*100;}
+
 function rankOf(op){let r=0;for(let i=0;i<RANKS.length;i++)if(op>=RANKS[i].min)r=i;return r;}
 function nextRank(op){for(let i=0;i<RANKS.length;i++)if(op<RANKS[i].min)return RANKS[i];return null;}
 function daysLeft(){const n=new Date();const end=new Date(n.getFullYear(),n.getMonth()+1,0);return Math.ceil((end-n)/(1000*60*60*24));}
@@ -103,7 +148,7 @@ let STATE={tab:"throne",slaves:[],log:[],isMistress:false,loading:true};
 async function fetchAll(){
   const {data:slaves}=await db.from('slaves').select('*').order('op',{ascending:false});
   const {data:log}=await db.from('podval_log').select('*').order('t',{ascending:false}).limit(40);
-  STATE.slaves=(slaves||[]).map(s=>({...s,titles:Array.isArray(s.titles)?s.titles:JSON.parse(s.titles||'[]'),ach:Array.isArray(s.ach)?s.ach:JSON.parse(s.ach||'[]')}));
+  STATE.slaves=(slaves||[]).map(s=>({...s,titles:Array.isArray(s.titles)?s.titles:JSON.parse(s.titles||'[]'),ach:Array.isArray(s.ach)?s.ach:JSON.parse(s.ach||'[]'),inventory:Array.isArray(s.inventory)?s.inventory:JSON.parse(s.inventory||'[]'),equipped:(s.equipped&&typeof s.equipped==='object')?s.equipped:JSON.parse(s.equipped||'{}'),lvl:s.lvl||1,xp:s.xp||0,str:s.str||10,def:s.def||10,spd:s.spd||10,wins:s.wins||0,losses:s.losses||0}));
   STATE.log=log||[];STATE.loading=false;render();
 }
 async function pushLog(msg){if(!STATE.isMistress)return;await db.from('podval_log').insert({msg});}
@@ -120,7 +165,7 @@ function toast(msg){const t=el(`<div style="position:fixed;bottom:30px;left:50%;
 
 function render(){
   if(STATE.loading){app.innerHTML='<div style="min-height:100vh;display:grid;place-items:center;color:var(--gold);font-family:Cinzel;letter-spacing:2px">Отпираем двери подвала…</div>';return;}
-  const TABS=[["throne","Трон"],["slaves","Рабы"],["wheel","Колесо"],["arena","Арена"],["court","Суд"],["cup","Сезон"]];
+  const TABS=[["throne","Трон"],["hero","Перс"],["slaves","Рабы"],["wheel","Колесо"],["arena","Арена"],["court","Суд"],["cup","Сезон"]];
   app.innerHTML=`
     <header>
       <div class="brandrow">
@@ -136,7 +181,7 @@ function render(){
     <main id="main"></main>
     <footer>⛓ &nbsp; 18+ · ВСЁ ПО ФАНУ · СЛОВО ГОСПОЖИ — ЗАКОН &nbsp; ⛓</footer>`;
   const m=document.getElementById('main');
-  ({throne:renderThrone,slaves:renderSlaves,wheel:renderWheel,arena:renderArena,court:renderCourt,cup:renderCup}[STATE.tab])(m);
+  ({throne:renderThrone,hero:renderHero,slaves:renderSlaves,wheel:renderWheel,arena:renderArena,court:renderCourt,cup:renderCup}[STATE.tab])(m);
 }
 function go(t){STATE.tab=t;render();}
 
@@ -166,6 +211,87 @@ function renderThrone(m){
 }
 
 let openId=null;
+let heroSel=null; // выбранный перс для просмотра
+
+function renderHero(m){
+  const list=STATE.slaves;
+  if(list.length===0){m.innerHTML='<div class="banner"><h1>ПЕРСОНАЖ</h1></div><div class="card muted">Сначала заведи рабов.</div>';return;}
+  if(heroSel===null)heroSel=list[0].id;
+  const s=list.find(x=>x.id===heroSel)||list[0];
+  const p=powerOf(s);
+  const eq=s.equipped||{};
+  const nextXp=xpForNext(s.lvl||1);
+  const xpPct=Math.min(100,Math.round(((s.xp||0)/nextXp)*100));
+  m.innerHTML=`
+    <div class="banner"><h1>ПЕРСОНАЖ</h1><div class="s">Наряжай, качай, собирай редкий шмот. Сила решает в бою.</div></div>
+    <div class="card corner"><div class="lbl">Чей перс</div>
+      <select onchange="heroSel=Number(this.value);render()">${list.map(x=>`<option value="${x.id}" ${x.id===s.id?'selected':''}>${esc(x.nick)}</option>`).join('')}</select>
+    </div>
+
+    <!-- псевдо-3D карточка персонажа -->
+    <div class="hero3d corner">
+      <div class="hero3d-glow"></div>
+      <div class="hero3d-av">${s.avatar?`<img src="${esc(s.avatar)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:14px"/>`:`<div class="hero3d-silhouette">🥷</div>`}</div>
+      <div class="hero3d-lvl">LVL ${s.lvl||1}</div>
+      <div class="hero3d-name">${esc(s.nick)}</div>
+      <div class="hero3d-power">⚔ Мощь: <b>${p.total}</b></div>
+    </div>
+
+    <!-- XP -->
+    <div class="card corner" style="margin-top:11px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--faint)"><span>ОПЫТ</span><span>${s.xp||0} / ${nextXp}</span></div>
+      <div class="prog"><div style="width:${xpPct}%"></div></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <div style="flex:1;text-align:center"><div style="font-family:Cinzel;font-size:20px;font-weight:900;color:#ff6b6b">${p.str}</div><div style="font-size:9px;color:var(--faint);text-transform:uppercase">Сила</div></div>
+        <div style="flex:1;text-align:center"><div style="font-family:Cinzel;font-size:20px;font-weight:900;color:#5b8def">${p.def}</div><div style="font-size:9px;color:var(--faint);text-transform:uppercase">Защита</div></div>
+        <div style="flex:1;text-align:center"><div style="font-family:Cinzel;font-size:20px;font-weight:900;color:#46c98a">${p.spd}</div><div style="font-size:9px;color:var(--faint);text-transform:uppercase">Скорость</div></div>
+      </div>
+    </div>
+
+    ${STATE.isMistress?`<div class="card corner"><div class="lbl">Прокачка (за счёт Госпожи)</div>
+      <div class="row">
+        <button class="tapbtn btn sm" onclick="trainStat(${s.id},'str')">+ Сила (5 ОП)</button>
+        <button class="tapbtn btn sm" onclick="trainStat(${s.id},'def')">+ Защита (5 ОП)</button>
+        <button class="tapbtn btn sm" onclick="trainStat(${s.id},'spd')">+ Скорость (5 ОП)</button>
+        <button class="tapbtn btn sm gold" onclick="giveXp(${s.id},50)">+ 50 опыта</button>
+      </div>
+      <div class="lbl" style="margin-top:12px">Аватар (ссылка на картинку)</div>
+      <div class="row" style="flex-wrap:nowrap"><input id="avurl" placeholder="https://..." value="${esc(s.avatar||'')}"/><button class="tapbtn btn sm" onclick="setAvatar(${s.id})">OK</button></div>
+    </div>`:''}
+
+    <!-- слоты экипировки -->
+    <div class="sect">Экипировка</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:12px">
+      ${SLOTS.map(([slot,name,ic])=>{const g=eq[slot]?gearById(eq[slot]):null;const col=g?RARITY[g.r].c:'var(--line)';return `<div class="slot corner" style="border-color:${col}" ${STATE.isMistress?`onclick="openGearPicker(${s.id},'${slot}')"`:''}>
+        <div style="font-size:20px">${ic}</div>
+        <div style="font-size:8px;color:var(--faint);margin-top:2px">${name}</div>
+        ${g?`<div style="font-size:8px;color:${col};margin-top:3px;font-weight:700;line-height:1.1">${esc(g.n)}</div>`:`<div style="font-size:8px;color:var(--faint);margin-top:3px">пусто</div>`}
+      </div>`;}).join('')}
+    </div>
+
+    <!-- инвентарь -->
+    <div class="sect">Инвентарь ${s.inventory&&s.inventory.length?'· '+s.inventory.length:''}</div>
+    ${(!s.inventory||s.inventory.length===0)?'<div class="card muted">Пусто. Выбивай шмот в Колесе или получай за заслуги.</div>':
+      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${s.inventory.map(id=>{const g=gearById(id);if(!g)return'';const col=RARITY[g.r].c;const worn=Object.values(eq).includes(id);return `<div class="card corner" style="border-color:${col};margin:0;padding:11px">
+        <div style="font-size:8px;color:${col};text-transform:uppercase;font-weight:800;letter-spacing:.5px">${RARITY[g.r].n}</div>
+        <div style="font-weight:800;font-size:13px;margin:2px 0">${esc(g.n)}</div>
+        <div style="font-size:10px;color:var(--dim)">💪${g.str>=0?'+':''}${g.str} 🛡${g.def>=0?'+':''}${g.def} ⚡${g.spd>=0?'+':''}${g.spd}</div>
+        ${STATE.isMistress?`<button class="tapbtn btn sm ${worn?'ghost':'gold'}" style="margin-top:8px;width:100%" onclick="${worn?`unequip(${s.id},'${g.slot}')`:`equip(${s.id},'${g.id}')`}">${worn?'Снять':'Надеть'}</button>`:`<div class="muted" style="margin-top:6px">${worn?'надето':''}</div>`}
+      </div>`;}).join('')}</div>`}
+
+    ${STATE.isMistress?`<div class="sect">Выдать шмот (дроп)</div>
+      <div class="card corner"><select id="givegear"><option value="">Выбери предмет…</option>${GEAR.map(g=>`<option value="${g.id}">[${RARITY[g.r].n}] ${g.n} (💪${g.str} 🛡${g.def} ⚡${g.spd})</option>`).join('')}</select>
+      <button class="tapbtn btn gold" style="width:100%;margin-top:9px" onclick="giveGear(${s.id})">Выдать в инвентарь</button></div>`:''}
+  `;
+}
+async function trainStat(id,stat){const s=STATE.slaves.find(x=>x.id===id);if(s.op<5){toast("Мало ОП (нужно 5)");return;}const patch={op:s.op-5};patch[stat]=(s[stat]||10)+1;await updateSlave(id,patch);await pushLog("🏋️ «"+s.nick+"» прокачал "+({str:'Силу',def:'Защиту',spd:'Скорость'}[stat]));}
+async function giveXp(id,amt){const s=STATE.slaves.find(x=>x.id===id);let xp=(s.xp||0)+amt,lvl=s.lvl||1;let leveled=false;while(xp>=xpForNext(lvl)){xp-=xpForNext(lvl);lvl++;leveled=true;}await updateSlave(id,{xp,lvl});if(leveled){await pushLog("⬆️ «"+s.nick+"» апнул уровень — теперь LVL "+lvl);toast("Уровень повышен! LVL "+lvl);}}
+async function setAvatar(id){const v=document.getElementById('avurl').value.trim();await updateSlave(id,{avatar:v});toast("Аватар обновлён");}
+async function giveGear(id){const gid=document.getElementById('givegear').value;if(!gid)return;const s=STATE.slaves.find(x=>x.id===id);await updateSlave(id,{inventory:[...(s.inventory||[]),gid]});const g=gearById(gid);await pushLog("🎁 «"+s.nick+"» получил ["+RARITY[g.r].n+"] "+g.n);toast("Выдано: "+g.n);}
+async function equip(id,gid){const s=STATE.slaves.find(x=>x.id===id);const g=gearById(gid);const eq={...(s.equipped||{})};eq[g.slot]=gid;await updateSlave(id,{equipped:eq});}
+async function unequip(id,slot){const s=STATE.slaves.find(x=>x.id===id);const eq={...(s.equipped||{})};delete eq[slot];await updateSlave(id,{equipped:eq});}
+function openGearPicker(id,slot){const s=STATE.slaves.find(x=>x.id===id);const owned=(s.inventory||[]).map(gearById).filter(g=>g&&g.slot===slot);if(owned.length===0){toast("Нет шмота для слота");return;}const cur=(s.equipped||{})[slot];const m=el(`<div class="modal" onclick="if(event.target===this)this.remove()"><div class="box corner"><div style="font-family:Cinzel;font-size:17px;font-weight:900;color:var(--gold);margin-bottom:12px">Слот: ${SLOTS.find(x=>x[0]===slot)[1]}</div>${owned.map(g=>`<div class="card corner" style="border-color:${RARITY[g.r].c};cursor:pointer" onclick="equip(${id},'${g.id}');document.querySelector('.modal').remove()"><div style="font-weight:800">${esc(g.n)} ${cur===g.id?'✓':''}</div><div style="font-size:10px;color:var(--dim)">💪${g.str} 🛡${g.def} ⚡${g.spd}</div></div>`).join('')}${cur?`<button class="tapbtn btn ghost" style="width:100%" onclick="unequip(${id},'${slot}');document.querySelector('.modal').remove()">Снять текущее</button>`:''}</div></div>`);document.body.appendChild(m);}
+
 function renderSlaves(m){
   if(!STATE.isMistress){m.innerHTML=`<div class="banner"><h1>РЕЕСТР РАБОВ</h1><div class="s">Только Госпожа правит. Ты — смотришь и завидуешь.</div></div>`+slaveList(false);return;}
   m.innerHTML=`<div class="banner"><h1>РЕЕСТР РАБОВ</h1><div class="s">Раздавай очки, ранги, титулы, ачивки — одним касанием.</div></div>
@@ -281,14 +407,18 @@ function setF(k,v){fight[k]=Number(v);fight.hpA=100;fight.hpB=100;fight.on=false
 function startFight(){fight.hpA=100;fight.hpB=100;fight.turn="A";fight.over=null;fight.feed=[];fight.on=true;render();}
 function useMove(i){
   if(!fight.on||fight.over)return;const mv=MOVES[i];const s=STATE.slaves;const sa=s.find(x=>x.id===fight.a),sb=s.find(x=>x.id===fight.b);
-  const dmg=Math.floor(Math.random()*(mv.dmg[1]-mv.dmg[0]+1))+mv.dmg[0];const crit=Math.random()<.18;const real=crit?Math.floor(dmg*1.6):dmg;
+  const pa=powerOf(sa),pb=powerOf(sb);
+  const base=Math.floor(Math.random()*(mv.dmg[1]-mv.dmg[0]+1))+mv.dmg[0];
+  const ratio=pa.str/Math.max(8,pb.def*0.7);
+  const crit=Math.random()<(0.10+pa.spd/400);
+  let real=Math.round(base*ratio*(crit?1.6:1));real=Math.max(2,real);
   fight.hpB=Math.max(0,fight.hpB-real);fight.feed.unshift(sa.nick+": "+mv.name+" -> "+real+(crit?" 💥КРИТ!":""));
   if(fight.hpB<=0)return endFight("A");fight.turn="B";render();
-  setTimeout(()=>{const mv2=MOVES[Math.floor(Math.random()*MOVES.length)];const d2=Math.floor(Math.random()*(mv2.dmg[1]-mv2.dmg[0]+1))+mv2.dmg[0];const c2=Math.random()<.18;const r2=c2?Math.floor(d2*1.6):d2;
+  setTimeout(()=>{const mv2=MOVES[Math.floor(Math.random()*MOVES.length)];const base2=Math.floor(Math.random()*(mv2.dmg[1]-mv2.dmg[0]+1))+mv2.dmg[0];const ratio2=pb.str/Math.max(8,pa.def*0.7);const c2=Math.random()<(0.10+pb.spd/400);let r2=Math.round(base2*ratio2*(c2?1.6:1));r2=Math.max(2,r2);
     fight.hpA=Math.max(0,fight.hpA-r2);fight.feed.unshift(sb.nick+": "+mv2.name+" -> "+r2+(c2?" 💥КРИТ!":""));
     if(fight.hpA<=0)return endFight("B");fight.turn="A";render();},850);
 }
-async function endFight(w){fight.over=w;fight.on=false;const s=STATE.slaves;const win=w==="A"?s.find(x=>x.id===fight.a):s.find(x=>x.id===fight.b);const los=w==="A"?s.find(x=>x.id===fight.b):s.find(x=>x.id===fight.a);render();if(STATE.isMistress){await updateSlave(win.id,{op:win.op+10});await updateSlave(los.id,{op:Math.max(0,los.op-5)});await pushLog("⚔️ Арена: «"+win.nick+"» разнёс «"+los.nick+"» (+10 ОП)");}}
+async function endFight(w){fight.over=w;fight.on=false;const s=STATE.slaves;const win=w==="A"?s.find(x=>x.id===fight.a):s.find(x=>x.id===fight.b);const los=w==="A"?s.find(x=>x.id===fight.b):s.find(x=>x.id===fight.a);render();if(STATE.isMistress){await updateSlave(win.id,{op:win.op+10,wins:(win.wins||0)+1});await updateSlave(los.id,{op:Math.max(0,los.op-5),losses:(los.losses||0)+1});await giveXp(win.id,40);await pushLog("⚔️ Арена: «"+win.nick+"» разнёс «"+los.nick+"» (+10 ОП, +40 опыта)");}}
 
 const CHARGES=["опоздал к Госпоже","флудил не по делу","слил клан-катку","дерзил без Дня Бунта","не сделал поклон","выпрашивал внимание","ливнул с ивента","забыл, кто тут хозяйка"];
 const VERDICTS=["10 ударов плетью по жопе","кляп на сутки","сутки на холодном полу","публичная порка при всех","разжалование на ранг вниз","неделя статуса «Личный коврик»","Долговая Яма до отыгрыша"];
