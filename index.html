@@ -84,6 +84,29 @@
   .hero3d-power{font-size:12px;color:var(--gold);margin-top:3px}
   .slot{position:relative;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid var(--line);border-radius:12px;padding:9px 4px;text-align:center;cursor:pointer;transition:.15s}
   .slot:active{transform:scale(.95)}
+
+  /* ===== Enhanced RPG Design ===== */
+  .inv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  @media(min-width:520px){.inv-grid{grid-template-columns:repeat(3,1fr)}}
+  .gear-card{position:relative;border-radius:13px;overflow:hidden;padding:12px;transition:transform .16s,box-shadow .16s;background:linear-gradient(180deg,var(--panel2),var(--panel))}
+  .gear-card:hover{transform:translateY(-2px)}
+  .gear-img-w{height:120px;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.5),rgba(0,0,0,.8));border-radius:9px;margin-bottom:9px;overflow:hidden;position:relative}
+  .gear-img-w img{max-height:120px;max-width:100%;object-fit:contain;mix-blend-mode:screen;filter:brightness(1.18) contrast(1.14) drop-shadow(0 4px 10px rgba(0,0,0,.7))}
+  .gear-slot-ic{font-size:34px;opacity:.4}
+  .rglow-myth{box-shadow:0 0 20px rgba(200,16,46,.5),inset 0 0 14px rgba(200,16,46,.12),0 0 0 1px rgba(200,16,46,.3)}
+  .rglow-leg{box-shadow:0 0 16px rgba(212,175,55,.5),inset 0 0 12px rgba(212,175,55,.1),0 0 0 1px rgba(212,175,55,.25)}
+  .rglow-epic{box-shadow:0 0 12px rgba(168,85,247,.45),inset 0 0 10px rgba(168,85,247,.08),0 0 0 1px rgba(168,85,247,.2)}
+  .rglow-rare{box-shadow:0 0 8px rgba(59,130,246,.4),0 0 0 1px rgba(59,130,246,.15)}
+  .ach-pb{height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:6px;overflow:hidden}
+  .ach-pb>div{height:100%;border-radius:2px;transition:width .5s}
+  .ach-grid{display:grid;gap:9px}
+  .ach-card{display:flex;align-items:flex-start;gap:11px;border-radius:13px;padding:12px 14px;border:1px solid;transition:.14s}
+  .ach-card:hover{filter:brightness(1.06)}
+  .ach-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto;border:2px solid}
+  .gear-worn-badge{position:absolute;top:4px;right:4px;background:var(--good);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;letter-spacing:.3px}
+  .gear-new-badge{position:absolute;top:4px;left:4px;background:var(--violet);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;letter-spacing:.3px;animation:glow 2s infinite}
+  .stat-mini{font-size:10px;color:var(--dim);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap}
+  .stat-mini span{background:rgba(255,255,255,.05);border-radius:5px;padding:1px 5px}
 </style>
 </head>
 <body>
@@ -115,31 +138,110 @@ function prestigeOf(op){if(op<2500)return null;const e=op-2500;let p=null;for(co
 // ===== ДОСТИЖЕНИЯ (каталог из Книги). cond(s) -> bool для авто-выдачи =====
 // tier: bronze|silver|gold|secret. reward — текст награды (визуал). op — авто +ОП при выдаче.
 const ACHIEVEMENTS=[
-  // бронза
-  {id:"first_bow",tier:"bronze",n:"Первый поклон",desc:"Привязать перса",reward:"+10 ОП",op:10,cond:s=>!!s.tg_id},
-  {id:"loyal_pup",tier:"bronze",n:"Преданный пёс",desc:"50 ОП накоплено",reward:"+10 ОП",op:10,cond:s=>s.op>=50},
-  {id:"whip_taste",tier:"bronze",n:"Проба плети",desc:"10 порок",reward:"+20 ОП",op:20,cond:s=>(s.cnt_whip||0)>=10},
-  {id:"first_blood",tier:"bronze",n:"Первая кровь",desc:"1 победа на арене",reward:"+15 ОП",op:15,cond:s=>(s.wins||0)>=1},
-  {id:"spoke",tier:"bronze",n:"Заговорил",desc:"Накопить 30 ОП",reward:"+5 ОП",op:5,cond:s=>s.op>=30},
-  {id:"streak7",tier:"bronze",n:"Семидневка",desc:"Серия 7 дней",reward:"+15 ОП",op:15,cond:s=>(s.streak_days||0)>=7},
-  // серебро
-  {id:"gagged",tier:"silver",n:"Заткнули",desc:"20 кляпов",reward:"шмот-кляп + стикер",op:0,cond:s=>(s.cnt_gag||0)>=20},
-  {id:"faithful",tier:"silver",n:"Верный раб",desc:"500 ОП",reward:"+50 ОП",op:50,cond:s=>s.op>=500},
-  {id:"rug",tier:"silver",n:"Личный коврик Госпожи",desc:"Порка каждый день 30 дней",reward:"легендарка + «коврик»",op:0,cond:null},
-  {id:"gladiator",tier:"silver",n:"Гладиатор",desc:"50 побед на арене",reward:"редкий шмот-оружие",op:0,cond:s=>(s.wins||0)>=50},
-  {id:"marathon",tier:"silver",n:"Марафонец",desc:"Серия 30 дней",reward:"легендарная рамка",op:0,cond:s=>(s.streak_days||0)>=30},
-  {id:"collector",tier:"silver",n:"Коллекционер",desc:"Собрать 1 полный сет",reward:"бонус сета + стикер",op:0,cond:s=>fullSets(s).length>=1},
-  // золото
-  {id:"hard_bdsm",tier:"gold",n:"Жёсткое БДСМ",desc:"5000 порок",reward:"+200 ОП + легендарка + стикер",op:200,cond:s=>(s.cnt_whip||0)>=5000},
-  {id:"relic",tier:"gold",n:"Реликвия подвала",desc:"5000 ОП",reward:"высший титул + легендарка",op:0,cond:s=>s.op>=5000},
-  {id:"immortal",tier:"gold",n:"Бессмертный",desc:"Серия 365 дней",reward:"титул «Вечный»",op:0,cond:s=>(s.streak_days||0)>=365},
-  {id:"arena_champ",tier:"gold",n:"Чемпион арены",desc:"1000 побед",reward:"оружие «Бензопила»",op:0,cond:s=>(s.wins||0)>=1000},
-  // скрытые (условие не показываем рабам; выдаёт Госпожа вручную или особая логика)
-  {id:"midnight",tier:"secret",n:"Полуночник",desc:"???",reward:"стикер «Сова»",op:0,cond:null},
-  {id:"masochist",tier:"secret",n:"Мазохист со стажем",desc:"???",reward:"шмот «Истёртый ошейник»",op:0,cond:s=>(s.cnt_whip||0)>=100},
-  {id:"phoenix",tier:"secret",n:"Феникс",desc:"???",reward:"+30 ОП",op:30,cond:null},
-  {id:"bloodletting",tier:"secret",n:"Кровопускание",desc:"???",reward:"шмот «Алая лента»",op:0,cond:null},
-  {id:"favorite_toy",tier:"secret",n:"Любимая игрушка",desc:"???",reward:"строка в Книге",op:0,cond:null}
+  // ── БРОНЗА ────────────────────────────────────────────────────
+  {id:"first_bow",tier:"bronze",icon:"🙇",n:"Первый поклон",
+   desc:"Привязать перса к Telegram",reward:"+10 ОП",op:10,
+   cond:s=>!!s.tg_id,
+   prog:s=>({cur:s.tg_id?1:0,max:1})},
+  {id:"spoke",tier:"bronze",icon:"💬",n:"Заговорил",
+   desc:"Накопить 30 ОП",reward:"+5 ОП",op:5,
+   cond:s=>s.op>=30,
+   prog:s=>({cur:Math.min(s.op,30),max:30})},
+  {id:"loyal_pup",tier:"bronze",icon:"🐾",n:"Преданный пёс",
+   desc:"50 ОП накоплено",reward:"+10 ОП",op:10,
+   cond:s=>s.op>=50,
+   prog:s=>({cur:Math.min(s.op,50),max:50})},
+  {id:"whip_taste",tier:"bronze",icon:"🩸",n:"Проба плети",
+   desc:"Получить 10 порок",reward:"+20 ОП",op:20,
+   cond:s=>(s.cnt_whip||0)>=10,
+   prog:s=>({cur:Math.min(s.cnt_whip||0,10),max:10})},
+  {id:"first_blood",tier:"bronze",icon:"⚔️",n:"Первая кровь",
+   desc:"1 победа на арене",reward:"+15 ОП",op:15,
+   cond:s=>(s.wins||0)>=1,
+   prog:s=>({cur:Math.min(s.wins||0,1),max:1})},
+  {id:"streak7",tier:"bronze",icon:"🔥",n:"Семидневка",
+   desc:"Серия 7 дней подряд",reward:"+15 ОП",op:15,
+   cond:s=>(s.streak_days||0)>=7,
+   prog:s=>({cur:Math.min(s.streak_days||0,7),max:7})},
+  {id:"gamer",tier:"bronze",icon:"🎲",n:"Азартный",
+   desc:"Сыграть 5 раз в любые игры",reward:"+10 ОП",op:10,
+   cond:s=>(s.cnt_games||0)>=5,
+   prog:s=>({cur:Math.min(s.cnt_games||0,5),max:5})},
+  {id:"shopper",tier:"bronze",icon:"🛒",n:"Первая покупка",
+   desc:"Купить 1 предмет в магазине",reward:"+5 ОП",op:5,
+   cond:s=>(s.inventory||[]).length>=1,
+   prog:s=>({cur:Math.min((s.inventory||[]).length,1),max:1})},
+
+  // ── СЕРЕБРО ───────────────────────────────────────────────────
+  {id:"gagged",tier:"silver",icon:"🔇",n:"Заткнули",
+   desc:"Получить 20 кляпов",reward:"шмот + стикер",op:0,
+   cond:s=>(s.cnt_gag||0)>=20,
+   prog:s=>({cur:Math.min(s.cnt_gag||0,20),max:20})},
+  {id:"faithful",tier:"silver",icon:"💛",n:"Верный раб",
+   desc:"500 ОП накоплено",reward:"+50 ОП",op:50,
+   cond:s=>s.op>=500,
+   prog:s=>({cur:Math.min(s.op,500),max:500})},
+  {id:"gladiator",tier:"silver",icon:"🗡️",n:"Гладиатор",
+   desc:"50 побед на арене",reward:"редкое оружие",op:0,
+   cond:s=>(s.wins||0)>=50,
+   prog:s=>({cur:Math.min(s.wins||0,50),max:50})},
+  {id:"marathon",tier:"silver",icon:"📅",n:"Марафонец",
+   desc:"Серия 30 дней подряд",reward:"легендарная рамка",op:0,
+   cond:s=>(s.streak_days||0)>=30,
+   prog:s=>({cur:Math.min(s.streak_days||0,30),max:30})},
+  {id:"collector",tier:"silver",icon:"⚜️",n:"Коллекционер",
+   desc:"Собрать 1 полный сет",reward:"бонус сета + стикер",op:0,
+   cond:s=>fullSets(s).length>=1,
+   prog:s=>({cur:Math.min(fullSets(s).length,1),max:1})},
+  {id:"rug",tier:"silver",icon:"🛏️",n:"Личный коврик",
+   desc:"Получать порки 30 дней подряд",reward:"легендарка + «коврик»",op:0,
+   cond:null,prog:null},
+  {id:"hoarder",tier:"silver",icon:"📦",n:"Хомяк подвала",
+   desc:"Собрать 10 предметов в инвентарь",reward:"+30 ОП",op:30,
+   cond:s=>(s.inventory||[]).length>=10,
+   prog:s=>({cur:Math.min((s.inventory||[]).length,10),max:10})},
+  {id:"arena100",tier:"silver",icon:"🏟️",n:"Завсегдатай арены",
+   desc:"100 боёв (победы + поражения)",reward:"+25 ОП",op:25,
+   cond:s=>((s.wins||0)+(s.losses||0))>=100,
+   prog:s=>({cur:Math.min((s.wins||0)+(s.losses||0),100),max:100})},
+
+  // ── ЗОЛОТО ────────────────────────────────────────────────────
+  {id:"hard_bdsm",tier:"gold",icon:"💀",n:"Жёсткое БДСМ",
+   desc:"5000 порок суммарно",reward:"+200 ОП + легендарка + стикер",op:200,
+   cond:s=>(s.cnt_whip||0)>=5000,
+   prog:s=>({cur:Math.min(s.cnt_whip||0,5000),max:5000})},
+  {id:"relic",tier:"gold",icon:"👑",n:"Реликвия подвала",
+   desc:"5000 ОП накоплено",reward:"высший титул + легендарка",op:0,
+   cond:s=>s.op>=5000,
+   prog:s=>({cur:Math.min(s.op,5000),max:5000})},
+  {id:"immortal",tier:"gold",icon:"♾️",n:"Бессмертный",
+   desc:"Серия 365 дней",reward:"титул «Вечный»",op:0,
+   cond:s=>(s.streak_days||0)>=365,
+   prog:s=>({cur:Math.min(s.streak_days||0,365),max:365})},
+  {id:"arena_champ",tier:"gold",icon:"🏆",n:"Чемпион арены",
+   desc:"1000 побед на арене",reward:"оружие «Бензопила»",op:0,
+   cond:s=>(s.wins||0)>=1000,
+   prog:s=>({cur:Math.min(s.wins||0,1000),max:1000})},
+  {id:"op1200",tier:"gold",icon:"⚡",n:"Mistress' Shadow",
+   desc:"Достичь ранга Mistress' Shadow (1200 ОП)",reward:"+100 ОП + особый значок",op:100,
+   cond:s=>s.op>=1200,
+   prog:s=>({cur:Math.min(s.op,1200),max:1200})},
+
+  // ── СЕКРЕТЫ ───────────────────────────────────────────────────
+  {id:"midnight",tier:"secret",icon:"🦉",n:"Полуночник",
+   desc:"???",reward:"стикер «Сова»",op:0,cond:null,prog:null},
+  {id:"masochist",tier:"secret",icon:"🩹",n:"Мазохист со стажем",
+   desc:"???",reward:"шмот «Истёртый ошейник»",op:0,
+   cond:s=>(s.cnt_whip||0)>=100,
+   prog:null},
+  {id:"phoenix",tier:"secret",icon:"🔥",n:"Феникс",
+   desc:"???",reward:"+30 ОП",op:30,cond:null,prog:null},
+  {id:"bloodletting",tier:"secret",icon:"🩸",n:"Кровопускание",
+   desc:"???",reward:"шмот «Алая лента»",op:0,cond:null,prog:null},
+  {id:"favorite_toy",tier:"secret",icon:"🖤",n:"Любимая игрушка",
+   desc:"???",reward:"строка в Книге Госпожи",op:0,cond:null,prog:null},
+  {id:"quiz_master",tier:"secret",icon:"🧠",n:"Знаток Подвала",
+   desc:"???",reward:"+20 ОП + стикер",op:20,cond:null,prog:null},
 ];
 const ACH_TIER={bronze:{n:"Бронза",c:"#c97b3a"},silver:{n:"Серебро",c:"#b8c0cc"},gold:{n:"Золото",c:"#d4af37"},secret:{n:"Скрытое",c:"#8a4ad9"}};
 function achById(id){return ACHIEVEMENTS.find(a=>a.id===id);}
@@ -198,26 +300,83 @@ const PITY={rare:10,epic:50,legend:90}; // мягкий гарант: кажды
 const SLOTS=[["head","Голова","🎭"],["body","Тело","🦺"],["weapon","Оружие","🔱"],["collar","Ошейник","⛓"],["thong","Стринги","👙"]];
 // каталог шмота: id, имя, слот, редкость, бонусы
 const GEAR=[
-  {id:"g1",n:"Кожаная маска",slot:"head",r:"common",str:2,def:3,spd:0},
-  {id:"g2",n:"Капюшон ниндзя",slot:"head",r:"rare",str:4,def:5,spd:3},
-  {id:"g3",n:"Корона Госпожи",slot:"head",r:"legend",str:8,def:8,spd:6},
-  {id:"g4",n:"Жилет с шипами",slot:"body",r:"common",str:3,def:4,spd:-1},
-  {id:"g5",n:"Латексный костюм",slot:"body",r:"epic",str:7,def:9,spd:4},
-  {id:"g6",n:"Бронзовая плеть",slot:"weapon",r:"rare",str:7,def:0,spd:3,img:"https://raw.githubusercontent.com/Makima-lab/podval/main/%D0%9F%D0%BB%D0%B5%D1%82%D1%8C_%D0%B1%D1%80%D0%BE%D0%BD%D0%B7%D0%B0.jpg",pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/%D0%9A%D0%B0%D1%87%D0%BE%D0%BA_%D1%81_%D0%BF%D0%BB%D0%B5%D1%82%D1%8C%D1%8E.jpg"},
-  {id:"g7",n:"Шипованная булава",slot:"weapon",r:"rare",str:9,def:1,spd:0},
-  {id:"g8",n:"Бензопила Макимы",slot:"weapon",r:"legend",str:15,def:2,spd:3},
-  {id:"g9",n:"Стальной ошейник",slot:"collar",r:"common",str:1,def:4,spd:0},
-  {id:"g10",n:"Ошейник с сердцем",slot:"collar",r:"epic",str:4,def:7,spd:5},
-  {id:"g11",n:"Стринги «Корона»",slot:"thong",r:"legend",str:6,def:6,spd:10},
-  {id:"g12",n:"Стринги «Енот»",slot:"thong",r:"rare",str:3,def:3,spd:6},
-  {id:"g13",n:"Поводок Госпожи",slot:"collar",r:"legend",str:4,def:12,spd:2},
-  {id:"g14",n:"Бензопила Преданности",slot:"weapon",r:"mythic",str:20,def:3,spd:5},
-  {id:"g15",n:"Маска Тени Госпожи",slot:"head",r:"mythic",str:12,def:12,spd:10},
-  {id:"g16",n:"Латекс «Кровь и Золото»",slot:"body",r:"legend",str:11,def:13,spd:6},
-  {id:"g17",n:"Стринги «Дьявол сезона»",slot:"thong",r:"mythic",str:14,def:10,spd:16},
-  {id:"g18",n:"Шипованный ошейник",slot:"collar",r:"rare",str:5,def:1,spd:0,img:"https://raw.githubusercontent.com/Makima-lab/podval/main/Osheinik.png",pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/Osheinik.png"},
-  {id:"g19",n:"Латексный комбез",slot:"body",r:"rare",str:0,def:4,spd:4,img:"https://raw.githubusercontent.com/Makima-lab/podval/main/LatexKostum.png",pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/LatexKostum.png"},
-  {id:"g20",n:"Сбруя раба",slot:"body",r:"epic",str:0,def:6,spd:0,img:"https://raw.githubusercontent.com/Makima-lab/podval/main/Portupey.png",pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/Portupey.png"},
+  // ── HEAD ──────────────────────────────────────────────────────
+  {id:"g1",n:"Кожаная маска",slot:"head",r:"common",str:2,def:3,spd:0,
+   desc:"Потёртая маска новичка. Пахнет страхом и покорностью."},
+  {id:"g2",n:"Капюшон ниндзя",slot:"head",r:"rare",str:4,def:5,spd:3,
+   desc:"Скользи в темноте. Враг не видит удар."},
+  {id:"g22",n:"Колпак позора",slot:"head",r:"common",str:0,def:2,spd:1,
+   desc:"Надевается за провинность. Носи с гордостью — или без неё."},
+  {id:"g25",n:"Шёлковая повязка",slot:"head",r:"rare",str:2,def:3,spd:6,
+   desc:"Не видишь — лучше чувствуешь. Скорость реакции ×1.2."},
+  {id:"g30",n:"Маска хаоса",slot:"head",r:"epic",str:8,def:6,spd:4,
+   desc:"Лик без лица. Противник не читает твои движения."},
+  {id:"g3",n:"Корона Госпожи",slot:"head",r:"legend",str:8,def:8,spd:6,
+   desc:"Только у одного раба. Носить — значит быть Любимчиком."},
+  {id:"g15",n:"Маска Тени Госпожи",slot:"head",r:"mythic",str:12,def:12,spd:10,
+   desc:"Пять рун Госпожи выжжены изнутри. Взгляд из-под неё — приговор."},
+
+  // ── BODY ──────────────────────────────────────────────────────
+  {id:"g4",n:"Жилет с шипами",slot:"body",r:"common",str:3,def:4,spd:-1,
+   desc:"Грубая кожа, ржавые шипы. Сдержанный стиль подвала."},
+  {id:"g19",n:"Латексный комбез",slot:"body",r:"rare",str:0,def:4,spd:4,
+   img:"https://raw.githubusercontent.com/Makima-lab/podval/main/LatexKostum.png",
+   pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/LatexKostum.png",
+   desc:"Блестит как зеркало, скользит как угорь."},
+  {id:"g23",n:"Кандалы Подвала",slot:"body",r:"epic",str:5,def:10,spd:-2,
+   desc:"Тяжелее — значит покорнее. Защита за счёт свободы."},
+  {id:"g5",n:"Латексный костюм",slot:"body",r:"epic",str:7,def:9,spd:4,
+   desc:"Второй слой кожи. Движения плавные, удары мягкие — но точные."},
+  {id:"g20",n:"Сбруя раба",slot:"body",r:"epic",str:0,def:6,spd:0,
+   img:"https://raw.githubusercontent.com/Makima-lab/podval/main/Portupey.png",
+   pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/Portupey.png",
+   desc:"Кожаные ремни держат форму. Видно — кто тут чей."},
+  {id:"g28",n:"Сбруя Лидера",slot:"body",r:"legend",str:12,def:10,spd:5,
+   desc:"Золотые пряжки, кровавая кожа. Раб, дошедший до этого, уже не просто раб."},
+  {id:"g16",n:"Латекс «Кровь и Золото»",slot:"body",r:"legend",str:11,def:13,spd:6,
+   desc:"Ручная работа Госпожи. Каждый шов — награда за верность."},
+
+  // ── WEAPON ────────────────────────────────────────────────────
+  {id:"g26",n:"Деревянная шлёпалка",slot:"weapon",r:"common",str:5,def:0,spd:1,
+   desc:"Классика жанра. Больно не от силы — от звука."},
+  {id:"g6",n:"Бронзовая плеть",slot:"weapon",r:"rare",str:7,def:0,spd:3,
+   img:"https://raw.githubusercontent.com/Makima-lab/podval/main/%D0%9F%D0%BB%D0%B5%D1%82%D1%8C_%D0%B1%D1%80%D0%BE%D0%BD%D0%B7%D0%B0.jpg",
+   pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/%D0%9A%D0%B0%D1%87%D0%BE%D0%BA_%D1%81_%D0%BF%D0%BB%D0%B5%D1%82%D1%8C%D1%8E.jpg",
+   desc:"Бронзовая плеть 3-го поколения. Свистит красиво."},
+  {id:"g7",n:"Шипованная булава",slot:"weapon",r:"rare",str:9,def:1,spd:0,
+   desc:"Медленно, но неотвратимо. Как воля Госпожи."},
+  {id:"g24",n:"Плеть Госпожи",slot:"weapon",r:"legend",str:18,def:0,spd:4,
+   desc:"Семь хвостов. Семь грехов. Один удар — конец разговора."},
+  {id:"g8",n:"Бензопила Макимы",slot:"weapon",r:"legend",str:15,def:2,spd:3,
+   desc:"Рычит и жаждет. Дьявол внутри одобряет."},
+  {id:"g14",n:"Бензопила Преданности",slot:"weapon",r:"mythic",str:20,def:3,spd:5,
+   desc:"Цепь пропитана ОП сотен рабов. Режет не тело — волю."},
+
+  // ── COLLAR ────────────────────────────────────────────────────
+  {id:"g9",n:"Стальной ошейник",slot:"collar",r:"common",str:1,def:4,spd:0,
+   desc:"Холодная сталь. Первый знак принадлежности."},
+  {id:"g18",n:"Шипованный ошейник",slot:"collar",r:"rare",str:5,def:1,spd:0,
+   img:"https://raw.githubusercontent.com/Makima-lab/podval/main/Osheinik.png",
+   pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/Osheinik.png",
+   desc:"Когда смотришь вниз — видишь шипы. Держит осанку идеально."},
+  {id:"g21",n:"Браслеты Хаоса",slot:"collar",r:"epic",str:5,def:5,spd:2,
+   desc:"Шипованная пара. Носятся на запястьях — символ ограниченной свободы."},
+  {id:"g10",n:"Ошейник с сердцем",slot:"collar",r:"epic",str:4,def:7,spd:5,
+   desc:"Сердечко бьётся — значит всё ещё живой. Хороший знак."},
+  {id:"g27",n:"Серебряный ошейник",slot:"collar",r:"legend",str:8,def:10,spd:5,
+   desc:"Гравировка: «Собственность Макимы». Не подлежит возврату."},
+  {id:"g13",n:"Поводок Госпожи",slot:"collar",r:"legend",str:4,def:12,spd:2,
+   desc:"Золотая цепь толщиной с мизинец. Дёрнешь — упадёшь."},
+
+  // ── THONG ─────────────────────────────────────────────────────
+  {id:"g29",n:"Стринги «Новичок»",slot:"thong",r:"common",str:1,def:2,spd:4,
+   desc:"Базовая экипировка. Ничего не скрывает. Особенно трепет."},
+  {id:"g12",n:"Стринги «Енот»",slot:"thong",r:"rare",str:3,def:3,spd:6,
+   desc:"Полоскатый принт, неожиданно быстрые. Загадочный выбор."},
+  {id:"g11",n:"Стринги «Корона»",slot:"thong",r:"legend",str:6,def:6,spd:10,
+   desc:"Золотой узор по краю. Надев — становишься частью легенды."},
+  {id:"g17",n:"Стринги «Дьявол сезона»",slot:"thong",r:"mythic",str:14,def:10,spd:16,
+   desc:"Выдаются только победителю сезона. Горят красным в темноте."},
 ];
 function gearById(id){return GEAR.find(g=>g.id===id);}
 // ===== СЕТЫ-КОСТЮМЫ (из Книги): бонус за полный комплект надетых предметов =====
@@ -473,14 +632,23 @@ function renderHero(m){
     </div>
 
     <!-- инвентарь -->
-    <div class="sect">Инвентарь ${s.inventory&&s.inventory.length?'· '+s.inventory.length:''}</div>
-    ${(!s.inventory||s.inventory.length===0)?'<div class="card muted">Пусто. Выбивай шмот в Колесе или получай за заслуги.</div>':
-      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${s.inventory.map(id=>{const g=gearById(id);if(!g)return'';const col=RARITY[g.r].c;const worn=Object.values(eq).includes(id);return `<div class="card corner" style="border-color:${col};margin:0;padding:11px">
-        ${g.img?`<div style="height:110px;display:grid;place-items:center;margin-bottom:6px"><img src="${esc(g.img)}" alt="" style="max-height:110px;max-width:100%;object-fit:contain;mix-blend-mode:screen"/></div>`:''}
-        <div style="font-size:8px;color:${col};text-transform:uppercase;font-weight:800;letter-spacing:.5px">${RARITY[g.r].n}</div>
-        <div style="font-weight:800;font-size:13px;margin:2px 0">${esc(g.n)}</div>
-        <div style="font-size:10px;color:var(--dim)">💪${g.str>=0?'+':''}${g.str} 🛡${g.def>=0?'+':''}${g.def} ⚡${g.spd>=0?'+':''}${g.spd}</div>
-        ${canEdit?`<button class="tapbtn btn sm ${worn?'ghost':'gold'}" style="margin-top:8px;width:100%" onclick="${worn?`unequip(${s.id},'${g.slot}')`:`equip(${s.id},'${g.id}')`}">${worn?'Снять':'Надеть'}</button>`:`<div class="muted" style="margin-top:6px">${worn?'надето':''}</div>`}${STATE.isMistress?`<button class="tapbtn btn sm" style="margin-top:6px;width:100%;background:var(--bloodDk)" onclick="takeGear(${s.id},'${g.id}')">Забрать</button>`:''}
+    <div class="sect">Инвентарь ${s.inventory&&s.inventory.length?'· '+s.inventory.length+'/'+GEAR.length:''}</div>
+    ${(!s.inventory||s.inventory.length===0)?'<div class="card muted" style="text-align:center;padding:22px">Пусто.<br><span style="font-size:12px;color:var(--faint)">Крути Колесо или побеждай на арене.</span></div>':
+      `<div class="inv-grid">${s.inventory.map(id=>{const g=gearById(id);if(!g)return'';const col=RARITY[g.r].c;const worn=Object.values(eq).includes(id);const glowClass={mythic:'rglow-myth',legend:'rglow-leg',epic:'rglow-epic',rare:'rglow-rare'}[g.r]||'';return `<div class="gear-card corner ${glowClass}" style="border:1.5px solid ${col}40;margin:0">
+        <div class="gear-img-w">
+          ${g.img?`<img src="${esc(g.img)}" alt="${esc(g.n)}"/>`:`<span class="gear-slot-ic">${(SLOTS.find(sl=>sl[0]===g.slot)||['','','❔'])[2]}</span>`}
+          ${worn?`<span class="gear-worn-badge">НАДЕТО</span>`:''}
+        </div>
+        <div style="font-size:8.5px;color:${col};text-transform:uppercase;font-weight:800;letter-spacing:.6px;margin-bottom:2px">${RARITY[g.r].n}</div>
+        <div style="font-weight:800;font-size:12.5px;line-height:1.2;margin-bottom:4px">${esc(g.n)}</div>
+        ${g.desc?`<div style="font-size:10px;color:var(--faint);line-height:1.35;margin-bottom:6px;font-style:italic">${esc(g.desc)}</div>`:''}
+        <div class="stat-mini">
+          <span style="color:#ff6b6b">💪${g.str>=0?'+':''}${g.str}</span>
+          <span style="color:#5b8def">🛡${g.def>=0?'+':''}${g.def}</span>
+          <span style="color:#46c98a">⚡${g.spd>=0?'+':''}${g.spd}</span>
+        </div>
+        ${canEdit?`<button class="tapbtn btn sm ${worn?'ghost':'gold'}" style="margin-top:9px;width:100%" onclick="${worn?`unequip(${s.id},'${g.slot}')`:`equip(${s.id},'${g.id}')`}">${worn?'Снять ✕':'Надеть ✓'}</button>`:`<div class="muted" style="margin-top:6px;font-size:10px">${worn?'✓ надето':''}</div>`}
+        ${STATE.isMistress?`<button class="tapbtn btn sm" style="margin-top:5px;width:100%;background:var(--bloodDk);color:#ffaaaa" onclick="takeGear(${s.id},'${g.id}')">Забрать</button>`:''}
       </div>`;}).join('')}</div>`}
 
     ${STATE.isMistress?`<div class="sect">Выдать шмот (дроп)</div>
@@ -818,20 +986,20 @@ function renderGames(m){
     <div class="sect">🎲 Кости Судьбы</div>
     <div class="card corner"><div class="muted" style="font-size:12px;margin-bottom:10px">Бросай 2 кубика. Чем больше сумма — тем больше Очков Боли. Дубль — джекпот! Раз в 30 мин.</div>
       <div id="diceArea" style="text-align:center;font-size:40px;margin:6px 0">🎲 🎲</div>
-      <button class="tapbtn btn gold" style="width:100%" ${authed?'':'disabled style=opacity:.45'} onclick="playDice()">Бросить кости</button>
+      <button class="tapbtn btn gold" style="width:100%;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="playDice()">Бросить кости</button>
       <div id="diceRes" style="text-align:center;margin-top:8px;min-height:18px"></div>
     </div>
 
     <div class="sect">🔮 Число Госпожи</div>
     <div class="card corner"><div class="muted" style="font-size:12px;margin-bottom:10px">Госпожа загадала число 1–5. Угадай — большой куш Очков Боли. Раз в 30 мин.</div>
-      <div style="display:flex;gap:7px;justify-content:center;margin-bottom:8px">${[1,2,3,4,5].map(n=>`<button class="tapbtn btn" style="width:48px;height:48px;font-size:18px;font-family:Cinzel" ${authed?'':'disabled style=opacity:.45'} onclick="playGuess(${n})">${n}</button>`).join('')}</div>
+      <div style="display:flex;gap:7px;justify-content:center;margin-bottom:8px">${[1,2,3,4,5].map(n=>`<button class="tapbtn btn" style="width:48px;height:48px;font-size:18px;font-family:Cinzel;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="playGuess(${n})">${n}</button>`).join('')}</div>
       <div id="guessRes" style="text-align:center;min-height:18px"></div>
     </div>
 
     <div class="sect">🧠 Викторина: Лор Подвала</div>
     <div class="card corner" id="quizCard">
       ${quizState?renderQuizInner():`<div class="muted" style="font-size:12px;margin-bottom:10px">5 вопросов о подвале. За каждый верный — Очки Боли. Раз в 2 часа.</div>
-      <button class="tapbtn btn gold" style="width:100%" ${authed?'':'disabled style=opacity:.45'} onclick="startQuiz()">Начать викторину</button>`}
+      <button class="tapbtn btn gold" style="width:100%;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="startQuiz()">Начать викторину</button>`}
     </div>`;
 }
 // --- Кости ---
@@ -907,7 +1075,7 @@ function renderShop(m){
     </div>
     <div class="card corner" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center">
       <div><div style="font-weight:800">🎡 Крутка Колеса</div><div class="muted" style="font-size:11px">Шанс на любой дроп по обычным правилам</div></div>
-      ${STATE.isMistress?`<button class="tapbtn btn sm gold" ${(tgt.shards||0)<SPIN_SHARD_COST?'disabled style=opacity:.45':''} onclick="spinWithShards(${tgt.id})">💎 ${SPIN_SHARD_COST}</button>`:`<span class="pill">💎 ${SPIN_SHARD_COST}</span>`}
+      ${STATE.isMistress?`<button class="tapbtn btn sm gold" style="${(tgt.shards||0)<SPIN_SHARD_COST?'opacity:.45':''}" ${(tgt.shards||0)<SPIN_SHARD_COST?'disabled':''} onclick="spinWithShards(${tgt.id})">💎 ${SPIN_SHARD_COST}</button>`:`<span class="pill">💎 ${SPIN_SHARD_COST}</span>`}
     </div></div>
     <div class="sect">Купить предмет</div>
     <div class="muted" style="font-size:11px;margin-bottom:8px">🩸 — раб платит сам Очками Боли · 💎 — дарит Госпожа за осколки. Уже добытое не показывается.</div>
@@ -916,15 +1084,26 @@ function renderShop(m){
       const list=GEAR.filter(g=>g.r===r && !owned.has(g.id));
       if(!list.length)return '';
       return `<div style="margin-bottom:4px"><div style="font-size:11px;color:${RARITY[r].c};font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px">${RARITY[r].n} · 🩸${PAIN_PRICE[r]} / 💎${SHARD_PRICE[r]}</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${list.map(g=>{
+        <div class="inv-grid">${list.map(g=>{
           const canPain=(tgt.pain||0)>=PAIN_PRICE[r], canShard=(tgt.shards||0)>=SHARD_PRICE[r];
-          return `<div class="card corner" style="border-color:${RARITY[r].c};margin:0;padding:10px">
-          <div style="font-weight:700;font-size:13px">${esc(g.n)}</div>
-          <div class="muted" style="font-size:11px;margin:3px 0 8px">💪${g.str} 🛡${g.def} ⚡${g.spd}</div>
-          ${authed?`<button class="tapbtn btn sm gold" style="width:100%;margin-bottom:5px" ${canPain?'':'disabled style=opacity:.45'} onclick="buyWithPain('${g.id}','${r}')">🩸 ${PAIN_PRICE[r]}</button>`:''}
-          ${STATE.isMistress?`<button class="tapbtn btn sm" style="width:100%" ${canShard?'':'disabled style=opacity:.45'} onclick="buyWithShards(${tgt.id},'${g.id}','${r}')">💎 ${SHARD_PRICE[r]}</button>`:(authed?'':`<span class="pill">🩸 ${PAIN_PRICE[r]}</span>`)}
+          const col=RARITY[r].c;
+          const glowClass={mythic:'rglow-myth',legend:'rglow-leg',epic:'rglow-epic',rare:'rglow-rare'}[r]||'';
+          return `<div class="gear-card corner ${glowClass}" style="margin:0;border:1.5px solid ${col}40">
+          <div class="gear-img-w">
+            ${g.img?`<img src="${esc(g.img)}" alt="${esc(g.n)}"/>`:`<span class="gear-slot-ic">${(SLOTS.find(sl=>sl[0]===g.slot)||['','','❔'])[2]}</span>`}
+          </div>
+          <div style="font-size:8.5px;color:${col};text-transform:uppercase;font-weight:800;letter-spacing:.6px;margin-bottom:2px">${RARITY[r].n}</div>
+          <div style="font-weight:800;font-size:12.5px;line-height:1.2;margin-bottom:4px">${esc(g.n)}</div>
+          ${g.desc?`<div style="font-size:10px;color:var(--faint);font-style:italic;margin-bottom:5px;line-height:1.3">${esc(g.desc)}</div>`:''}
+          <div class="stat-mini" style="margin-bottom:9px">
+            <span style="color:#ff6b6b">💪${g.str>=0?'+':''}${g.str}</span>
+            <span style="color:#5b8def">🛡${g.def>=0?'+':''}${g.def}</span>
+            <span style="color:#46c98a">⚡${g.spd>=0?'+':''}${g.spd}</span>
+          </div>
+          ${authed?`<button class="tapbtn btn sm gold" style="width:100%;margin-bottom:5px;${canPain?'':'opacity:.5'}" ${canPain?'':'disabled'} onclick="buyWithPain('${g.id}','${r}')">🩸 ${PAIN_PRICE[r]}</button>`:''}
+          ${STATE.isMistress?`<button class="tapbtn btn sm" style="width:100%;${canShard?'':'opacity:.5'}" ${canShard?'':'disabled'} onclick="buyWithShards(${tgt.id},'${g.id}','${r}')">💎 ${SHARD_PRICE[r]}</button>`:(authed?'':`<span class="pill" style="width:100%;justify-content:center">🩸 ${PAIN_PRICE[r]}</span>`)}
         </div>`;}).join('')}</div></div>`;
-    }).join('')||'<div class="card muted">Весь шмот этой витрины уже добыт.</div>'}`}`;
+    }).join('')||'<div class="card muted" style="text-align:center;padding:22px">Весь шмот этой витрины уже добыт 🏆</div>'}`}`;
 }
 async function buyWithPain(gid,r){
   if(!(STATE.slaveAuth&&STATE.slaveAuth===STATE.slaveId))return;
@@ -960,19 +1139,51 @@ function renderAch(m){
   const have=new Set(tgt?tgt.ach||[]:[]);
   const tiers=["bronze","silver","gold","secret"];
   const total=ACHIEVEMENTS.length, got=ACHIEVEMENTS.filter(a=>have.has(a.id)).length;
+  const tierIcon={bronze:"🥉",silver:"🥈",gold:"🥇",secret:"🔮"};
   m.innerHTML=`<div class="banner"><h1>ЗАЛ НАГРАД</h1><div class="s">Вехи на пути раба. Бронза, серебро, золото — и тайны Госпожи.</div></div>
     ${STATE.isMistress?`<div class="card corner"><div class="lbl">Чьи награды</div><select id="achtarget" onchange="render()">${STATE.slaves.map(s=>`<option value="${s.id}" ${tgt&&s.id===tgt.id?'selected':''}>${esc(s.nick)}</option>`).join('')}</select></div>`:''}
     ${!tgt?'<div class="card muted">Нет раба.</div>':`
-    <div class="countdown" style="margin-bottom:12px"><div class="t">${got} / ${total}</div><div class="l">достижений у «${esc(tgt.nick)}»</div></div>
-    ${tiers.map(t=>`<div class="sect" style="color:${ACH_TIER[t].c}">${ACH_TIER[t].n}</div>
-      <div style="display:grid;gap:8px">${ACHIEVEMENTS.filter(a=>a.tier===t).map(a=>{const ok=have.has(a.id);const secret=a.tier==='secret'&&!ok;return `<div class="card corner ${ok?'':'locked'}" style="margin:0;padding:11px 13px;border-color:${ok?ACH_TIER[t].c:'var(--line)'};display:flex;align-items:center;gap:11px">
-        <span style="font-size:20px">${ok?'🏆':'🔒'}</span>
-        <div style="flex:1"><div style="font-weight:800;font-size:13px">${secret?'Скрытое достижение':esc(a.n)}</div>
-          <div class="muted" style="font-size:11px">${secret?'Условие скрыто Госпожой':esc(a.desc)+' · '+esc(a.reward)}</div></div>
-        ${STATE.isMistress?`<button class="tapbtn btn sm ${ok?'ghost':'gold'}" onclick="toggleAch(${tgt.id},'${a.id}',${ok})">${ok?'Снять':'Выдать'}</button>`:''}
-      </div>`;}).join('')}</div>`).join('')}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div class="card corner" style="margin:0;text-align:center;padding:14px 8px">
+        <div style="font-family:Cinzel;font-size:26px;font-weight:900;color:var(--gold)">${got}</div>
+        <div style="font-size:9px;color:var(--faint);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Открыто</div>
+        <div class="ach-pb" style="margin-top:10px"><div style="width:${Math.round(got/total*100)}%;background:linear-gradient(90deg,var(--bloodDk),var(--gold))"></div></div>
+      </div>
+      <div class="card corner" style="margin:0;text-align:center;padding:14px 8px">
+        <div style="font-family:Cinzel;font-size:26px;font-weight:900;color:var(--blood)">${total-got}</div>
+        <div style="font-size:9px;color:var(--faint);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Осталось</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:8px">${got}/${total}</div>
+      </div>
+    </div>
+
+    ${tiers.map(t=>{
+      const list=ACHIEVEMENTS.filter(a=>a.tier===t);
+      const gotT=list.filter(a=>have.has(a.id)).length;
+      return `<div class="sect" style="color:${ACH_TIER[t].c}">${tierIcon[t]} ${ACH_TIER[t].n} · ${gotT}/${list.length}</div>
+      <div class="ach-grid">${list.map(a=>{
+        const ok=have.has(a.id);
+        const secret=a.tier==='secret'&&!ok;
+        const pr=(!secret&&!ok&&a.prog&&tgt)?a.prog(tgt):null;
+        const pct=pr?Math.round(pr.cur/pr.max*100):0;
+        return `<div class="ach-card" style="margin:0;background:${ok?`linear-gradient(135deg,${ACH_TIER[t].c}18,var(--panel))`:'linear-gradient(180deg,var(--panel2),var(--panel))'};border-color:${ok?ACH_TIER[t].c:'var(--line)'}">
+          <div class="ach-icon" style="background:${ok?ACH_TIER[t].c+'22':'rgba(255,255,255,.04)'};border-color:${ok?ACH_TIER[t].c:'var(--line)'}">
+            ${ok?(a.icon||'🏆'):(secret?'❓':(a.icon||'🔒'))}
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:800;font-size:13px;${ok?'color:var(--text)':'color:var(--dim)'}">${secret?'???':esc(a.n)}</div>
+            <div style="font-size:10.5px;color:var(--faint);margin-top:2px;line-height:1.3">${secret?'Условие скрыто Госпожой':esc(a.desc)}</div>
+            ${!secret&&a.reward?`<div style="font-size:10px;color:${ok?'var(--good)':'var(--goldDk)'};margin-top:3px;font-weight:700">${ok?'✓ ':''}${esc(a.reward)}</div>`:''}
+            ${pr&&!ok?`<div class="ach-pb" style="margin-top:7px"><div style="width:${pct}%;background:linear-gradient(90deg,${ACH_TIER[t].c}88,${ACH_TIER[t].c})"></div></div>
+            <div style="font-size:9px;color:var(--faint);margin-top:3px">${pr.cur} / ${pr.max}</div>`:''}
+            ${STATE.isMistress?`<button class="tapbtn btn sm ${ok?'ghost':'gold'}" style="margin-top:7px;padding:5px 10px;font-size:11px" onclick="toggleAch(${tgt.id},'${a.id}',${ok})">${ok?'Снять':'Выдать'}</button>`:''}
+          </div>
+        </div>`;
+      }).join('')}</div>`;
+    }).join('')}
+
     <div class="sect">Трофейная стена · стикеры</div>
-    <div class="card corner"><div class="muted" style="font-size:12px">Стикеры-трофеи появятся здесь, когда Госпожа их выдаст (через бота или вручную). Собери все за сезон → скрытая ачивка.</div></div>`}`;
+    <div class="card corner"><div class="muted" style="font-size:12px">Стикеры-трофеи появятся здесь, когда Госпожа их выдаст через бота или вручную. Собери все за сезон → скрытая ачивка.</div></div>`}`;
 }
 async function toggleAch(id,aid,have){
   if(!STATE.isMistress)return;
