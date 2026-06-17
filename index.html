@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 <title>Подвал Макимы — Движок Госпожи</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -452,9 +453,23 @@ function rankOf(op){let r=0;for(let i=0;i<RANKS.length;i++)if(op>=RANKS[i].min)r
 function nextRank(op){for(let i=0;i<RANKS.length;i++)if(op<RANKS[i].min)return RANKS[i];return null;}
 function daysLeft(){const n=new Date();const end=new Date(n.getFullYear(),n.getMonth()+1,0);return Math.ceil((end-n)/(1000*60*60*24));}
 
-let STATE={tab:"throne",slaves:[],log:[],isMistress:false,loading:true,slaveId:null,slaveAuth:null,loginToken:null};
+let STATE={tab:"throne",slaves:[],log:[],isMistress:false,loading:true,slaveId:null,slaveAuth:null,loginToken:null,tgUserId:null,inTelegram:false};
 // если в ссылке ?id=N — это вход раба в своего перса
 (function(){try{const p=new URLSearchParams(location.search);const id=p.get('id');if(id)STATE.slaveId=Number(id);const t=p.get('t');if(t)STATE.loginToken=t;}catch(e){}})();
+// ===== TELEGRAM MINI APP: разворот, тема, определение пользователя =====
+let TG=null;
+function initTelegram(){
+  try{
+    TG=window.Telegram&&window.Telegram.WebApp?window.Telegram.WebApp:null;
+    if(!TG||!TG.initData)return; // не в Telegram — обычный сайт
+    STATE.inTelegram=true;
+    TG.ready(); TG.expand();
+    try{TG.setHeaderColor('#0a0809'); TG.setBackgroundColor('#0a0809');}catch(e){}
+    try{TG.disableVerticalSwipes&&TG.disableVerticalSwipes();}catch(e){}
+    const u=TG.initDataUnsafe&&TG.initDataUnsafe.user;
+    if(u&&u.id)STATE.tgUserId=u.id; // кто открыл приложение
+  }catch(e){}
+}
 // авто-вход по одноразовому токену из бота (?id=N&t=TOKEN)
 async function tryTokenLogin(){
   if(!STATE.loginToken||!STATE.slaveId)return;
@@ -1708,8 +1723,15 @@ function passAgeGate(){try{localStorage.setItem('podval_age_ok','1');}catch(e){}
 
 (async function(){
   if(SUPABASE_URL.includes("VSTAV")){app.innerHTML='<div style="padding:30px;color:var(--dim)">Вставь ключи Supabase.</div>';return;}
+  initTelegram();
   if(!ageGatePassed()){showAgeGate();return;}
   await checkSession();await tryTokenLogin();await fetchAll();
+  // в Telegram: открыть перса того, кто зашёл (по tg_id). Действия — по PIN (безопасно).
+  if(STATE.inTelegram && STATE.tgUserId && !STATE.slaveId && !STATE.isMistress){
+    const me=STATE.slaves.find(s=>String(s.tg_id)===String(STATE.tgUserId));
+    if(me){STATE.slaveId=me.id;STATE.tab="hero";render();}
+    else{toast("Твой Telegram не привязан к персу — напиши боту /вход");}
+  }
 })();
 </script>
 </body>
