@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Подвал Макимы — Движок Госпожи</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0a0809; --panel:#141013; --panel2:#1c161b; --line:#2e2630;
+    --blood:#c8102e; --bloodDk:#7a0a1c; --gold:#d4af37; --goldLt:#f0d878; --goldDk:#8c7320;
+    --violet:#8a4ad9; --text:#efe9f0; --dim:#a99fb0; --faint:#6e6470; --good:#46c98a;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:#0a0809;color:var(--text);font-family:'Manrope',system-ui,sans-serif;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 50% -10%,rgba(200,16,46,.10),transparent 55%),radial-gradient(ellipse at 50% 120%,rgba(212,175,55,.06),transparent 50%);pointer-events:none;z-index:0}
+  .wrap{position:relative;z-index:1}
+  @keyframes glow{0%,100%{box-shadow:0 0 0 rgba(212,175,55,0)}50%{box-shadow:0 0 26px rgba(212,175,55,.28)}}
+  @keyframes bloodGlow{0%,100%{box-shadow:0 0 0 rgba(200,16,46,0)}50%{box-shadow:0 0 26px rgba(200,16,46,.4)}}
+  @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .tapbtn:active{transform:scale(.95)}
+  ::-webkit-scrollbar{width:7px;height:7px}::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#0a0809,#0a0809ee 70%,transparent);backdrop-filter:blur(6px);padding:14px 16px 0;border-bottom:1px solid transparent;border-image:linear-gradient(90deg,transparent,var(--goldDk),transparent) 1}
+  .brandrow{display:flex;align-items:center;gap:12px}
+  .crest{width:46px;height:46px;border-radius:50%;border:2px solid var(--gold);display:grid;place-items:center;color:var(--gold);font-family:'Cinzel';font-weight:900;font-size:20px;background:radial-gradient(circle at 50% 30%,rgba(212,175,55,.18),transparent);animation:glow 4s infinite}
+  .brandname{font-family:'Cinzel';font-size:21px;font-weight:900;letter-spacing:2px;background:linear-gradient(90deg,var(--goldLt),var(--gold),var(--goldDk),var(--gold),var(--goldLt));background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 6s linear infinite}
+  .brandsub{font-size:10px;color:var(--faint);letter-spacing:3px;text-transform:uppercase;margin-top:1px}
+  nav{display:flex;gap:3px;margin-top:12px;overflow-x:auto}
+  nav button{flex:0 0 auto;background:transparent;color:var(--dim);border:1px solid var(--line);border-bottom:none;border-radius:9px 9px 0 0;padding:9px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Manrope';letter-spacing:.3px;transition:.15s}
+  nav button.on{background:linear-gradient(180deg,var(--panel2),var(--panel));color:var(--gold);border-color:var(--goldDk)}
+  main{padding:16px;max-width:780px;margin:0 auto;animation:fadeUp .4s}
+  .card{position:relative;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:11px}
+  .card.gilded{border-color:var(--goldDk);box-shadow:inset 0 0 0 1px rgba(212,175,55,.08)}
+  .corner::before,.corner::after{content:"";position:absolute;width:12px;height:12px;border-color:var(--gold);opacity:.5}
+  .corner::before{top:6px;left:6px;border-top:1.5px solid;border-left:1.5px solid}
+  .corner::after{bottom:6px;right:6px;border-bottom:1.5px solid;border-right:1.5px solid}
+  .btn{background:linear-gradient(180deg,var(--blood),var(--bloodDk));color:#fff;border:none;border-radius:9px;padding:11px 17px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Manrope';letter-spacing:.3px}
+  .btn.gold{background:linear-gradient(180deg,var(--goldLt),var(--gold));color:#2a1f06}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--dim)}
+  .btn.sm{padding:8px 12px;font-size:12.5px}
+  input,select{width:100%;background:var(--void);color:var(--text);border:1px solid var(--line);border-radius:9px;padding:11px 12px;font-size:14px;outline:none;font-family:'Manrope'}
+  input:focus,select:focus{border-color:var(--gold)}
+  .tag{display:inline-block;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;margin:2px}
+  .banner{margin-bottom:12px;border-left:3px solid;border-image:linear-gradient(180deg,var(--gold),var(--bloodDk)) 1;padding-left:13px}
+  .banner h1{margin:0;font-family:'Cinzel';font-size:23px;font-weight:900;letter-spacing:1.5px}
+  .banner .s{font-size:12px;color:var(--dim);margin-top:3px;font-style:italic}
+  .stat{position:relative;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:13px;padding:15px 8px;text-align:center;overflow:hidden}
+  .stat .v{font-family:'Cinzel';font-size:27px;font-weight:900}
+  .stat .l{font-size:9.5px;color:var(--faint);margin-top:3px;letter-spacing:.5px;text-transform:uppercase}
+  .sect{font-family:'Cinzel';font-size:13px;color:var(--gold);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:18px 0 9px;display:flex;align-items:center;gap:8px}
+  .sect::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--goldDk),transparent)}
+  .lbl{font-size:11px;color:var(--faint);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+  .muted{color:var(--faint);font-size:12px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .alert{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,rgba(200,16,46,.14),transparent);border:1px solid var(--bloodDk);border-radius:11px;padding:10px 13px;margin-bottom:11px;font-size:12.5px;color:#f0c0c8;animation:bloodGlow 3s infinite}
+  .alert .dot{width:8px;height:8px;border-radius:50%;background:var(--blood);box-shadow:0 0 8px var(--blood);flex:0 0 auto}
+  .countdown{background:rgba(212,175,55,.1);border:1px solid var(--goldDk);border-radius:11px;padding:10px 13px;margin-bottom:11px;text-align:center}
+  .countdown .t{font-family:'Cinzel';font-size:20px;font-weight:900;color:var(--gold);letter-spacing:2px}
+  .countdown .l{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:1px}
+  .hpwrap{height:14px;background:var(--void);border-radius:7px;overflow:hidden;border:1px solid var(--line)}
+  .prog{height:7px;background:var(--void);border-radius:4px;margin-top:8px;overflow:hidden;border:1px solid #00000060}
+  .prog>div{height:100%;background:linear-gradient(90deg,var(--bloodDk),var(--blood),var(--goldLt));background-size:200% auto;animation:shimmer 3s linear infinite}
+  .locked{opacity:.5;filter:grayscale(.6)}
+  .lockbadge{font-size:10px;color:var(--faint)}
+  footer{text-align:center;color:var(--faint);font-size:11px;padding:22px 0 34px;letter-spacing:2px;font-family:'Cinzel'}
+  .modal{position:fixed;inset:0;background:#000b;display:grid;place-items:center;z-index:50;padding:20px;backdrop-filter:blur(3px)}
+  .modal .box{position:relative;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--gold);border-radius:16px;padding:24px;max-width:350px;width:100%;animation:fadeUp .3s}
+  .pill{display:inline-flex;align-items:center;gap:5px;background:rgba(212,175,55,.12);border:1px solid var(--goldDk);color:var(--gold);border-radius:20px;padding:3px 10px;font-size:10.5px;font-weight:700}
+  /* псевдо-3D карточка персонажа */
+  .hero3d{position:relative;border-radius:18px;padding:22px 16px 18px;text-align:center;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#000 0%,#000 38%,#1a1218 78%,#0a0809 100%);border:1px solid var(--goldDk);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 40px rgba(0,0,0,.6)}
+  .hero3d-glow{position:absolute;inset:0;background:conic-gradient(from 0deg at 50% 40%,transparent,rgba(212,175,55,.10),transparent 30%);animation:spin360 12s linear infinite;pointer-events:none}
+  @keyframes spin360{to{transform:rotate(360deg)}}
+  .hero3d-av{position:relative;width:100%;max-width:300px;height:420px;margin:0 auto;display:grid;place-items:end center}
+  .hero3d-av img{width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;filter:brightness(1.04) contrast(1.18) drop-shadow(0 8px 16px rgba(0,0,0,.8));transform:perspective(800px) rotateX(2deg)}
+  .hero3d-av::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:180px;height:24px;background:radial-gradient(ellipse,rgba(212,175,55,.45),transparent 70%);filter:blur(8px)}
+  .hero3d-silhouette{font-size:150px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.6))}
+  .hero3d-lvl{position:absolute;top:14px;right:14px;background:linear-gradient(180deg,var(--goldLt),var(--gold));color:#2a1f06;font-family:Cinzel;font-weight:900;font-size:12px;padding:3px 10px;border-radius:20px;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+  .hero3d-name{font-family:Cinzel;font-size:19px;font-weight:900;margin-top:14px;letter-spacing:.5px}
+  .hero3d-power{font-size:12px;color:var(--gold);margin-top:3px}
+  .slot{position:relative;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid var(--line);border-radius:12px;padding:9px 4px;text-align:center;cursor:pointer;transition:.15s}
+  .slot:active{transform:scale(.95)}
+
+  /* ===== Enhanced RPG Design ===== */
+  .inv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  @media(min-width:520px){.inv-grid{grid-template-columns:repeat(3,1fr)}}
+  .gear-card{position:relative;border-radius:13px;overflow:hidden;padding:12px;transition:transform .16s,box-shadow .16s;background:linear-gradient(180deg,var(--panel2),var(--panel))}
+  .gear-card:hover{transform:translateY(-2px)}
+  .gear-img-w{height:120px;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.5),rgba(0,0,0,.8));border-radius:9px;margin-bottom:9px;overflow:hidden;position:relative}
+  .gear-img-w img{max-height:120px;max-width:100%;object-fit:contain;mix-blend-mode:screen;filter:brightness(1.18) contrast(1.14) drop-shadow(0 4px 10px rgba(0,0,0,.7))}
+  .gear-slot-ic{font-size:34px;opacity:.4}
+  .rglow-myth{box-shadow:0 0 20px rgba(200,16,46,.5),inset 0 0 14px rgba(200,16,46,.12),0 0 0 1px rgba(200,16,46,.3)}
+  .rglow-leg{box-shadow:0 0 16px rgba(212,175,55,.5),inset 0 0 12px rgba(212,175,55,.1),0 0 0 1px rgba(212,175,55,.25)}
+  .rglow-epic{box-shadow:0 0 12px rgba(168,85,247,.45),inset 0 0 10px rgba(168,85,247,.08),0 0 0 1px rgba(168,85,247,.2)}
+  .rglow-rare{box-shadow:0 0 8px rgba(59,130,246,.4),0 0 0 1px rgba(59,130,246,.15)}
+  .ach-pb{height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:6px;overflow:hidden}
+  .ach-pb>div{height:100%;border-radius:2px;transition:width .5s}
+  .ach-grid{display:grid;gap:9px}
+  .ach-card{display:flex;align-items:flex-start;gap:11px;border-radius:13px;padding:12px 14px;border:1px solid;transition:.14s}
+  .ach-card:hover{filter:brightness(1.06)}
+  .ach-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto;border:2px solid}
+  .gear-worn-badge{position:absolute;top:4px;right:4px;background:var(--good);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;letter-spacing:.3px}
+  .gear-new-badge{position:absolute;top:4px;left:4px;background:var(--violet);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;letter-spacing:.3px;animation:glow 2s infinite}
+  .stat-mini{font-size:10px;color:var(--dim);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap}
+  .stat-mini span{background:rgba(255,255,255,.05);border-radius:5px;padding:1px 5px}
+</style>
+</head>
+<body>
+<div class="wrap"><div id="app"></div></div>
+<script>
+const SUPABASE_URL  = "https://itxcdcujjtotaakowfni.supabase.co";
+const SUPABASE_KEY  = "sb_publishable_oAHQoZlVJ9eCPZ4XkhlaSA_yzRTo-eF";
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const RANKS = [
+  {n:"Fresh Meat",min:0,icon:"🥩",perk:"Доступ в подвал, базовый перс"},
+  {n:"Whimpering Pup",min:20,icon:"🐶",perk:"+1 слот инвентаря, может просить порку"},
+  {n:"Chained Mutt",min:60,icon:"⛓",perk:"Доступ к арене (дуэли)"},
+  {n:"Pedigree Hound",min:150,icon:"🦴",perk:"Колесо 1×/день бесплатно"},
+  {n:"Leashed Beast",min:300,icon:"🐺",perk:"+1 ритуал-слот, доступ к магазину"},
+  {n:"Dungeon Alpha",min:600,icon:"👑",perk:"Может вызвать любого на дуэль"},
+  {n:"Mistress' Shadow",min:1200,icon:"🖤",perk:"Особый значок, ×1.1 ОП за ритуалы"},
+  {n:"The Relic",min:2500,icon:"💀",perk:"Высший титул, строка в Книге, ×1.25 ОП"}
+];
+// Престиж — лестница после капа (статус, не сила). Нужно ОП сверх 2500.
+const PRESTIGE=[
+  {n:"Eternal Relic I",ru:"Вечная Реликвия I",extra:2500,icon:"★"},
+  {n:"Eternal Relic II",ru:"Вечная Реликвия II",extra:5000,icon:"★★"},
+  {n:"Mistress' Right Hand",ru:"Правая рука Госпожи",extra:10000,icon:"★★★"}
+];
+function prestigeOf(op){if(op<2500)return null;const e=op-2500;let p=null;for(const pr of PRESTIGE)if(e>=pr.extra)p=pr;return p;}
+
+// ===== ДОСТИЖЕНИЯ (каталог из Книги). cond(s) -> bool для авто-выдачи =====
+// tier: bronze|silver|gold|secret. reward — текст награды (визуал). op — авто +ОП при выдаче.
+const ACHIEVEMENTS=[
+  // ── БРОНЗА ────────────────────────────────────────────────────
+  {id:"first_bow",tier:"bronze",icon:"🙇",n:"Первый поклон",
+   desc:"Привязать перса к Telegram",reward:"+10 ОП",op:10,
+   cond:s=>!!s.tg_id,
+   prog:s=>({cur:s.tg_id?1:0,max:1})},
+  {id:"spoke",tier:"bronze",icon:"💬",n:"Заговорил",
+   desc:"Накопить 30 ОП",reward:"+5 ОП",op:5,
+   cond:s=>s.op>=30,
+   prog:s=>({cur:Math.min(s.op,30),max:30})},
+  {id:"loyal_pup",tier:"bronze",icon:"🐾",n:"Преданный пёс",
+   desc:"50 ОП накоплено",reward:"+10 ОП",op:10,
+   cond:s=>s.op>=50,
+   prog:s=>({cur:Math.min(s.op,50),max:50})},
+  {id:"whip_taste",tier:"bronze",icon:"🩸",n:"Проба плети",
+   desc:"Получить 10 порок",reward:"+20 ОП",op:20,
+   cond:s=>(s.cnt_whip||0)>=10,
+   prog:s=>({cur:Math.min(s.cnt_whip||0,10),max:10})},
+  {id:"first_blood",tier:"bronze",icon:"⚔️",n:"Первая кровь",
+   desc:"1 победа на арене",reward:"+15 ОП",op:15,
+   cond:s=>(s.wins||0)>=1,
+   prog:s=>({cur:Math.min(s.wins||0,1),max:1})},
+  {id:"streak7",tier:"bronze",icon:"🔥",n:"Семидневка",
+   desc:"Серия 7 дней подряд",reward:"+15 ОП",op:15,
+   cond:s=>(s.streak_days||0)>=7,
+   prog:s=>({cur:Math.min(s.streak_days||0,7),max:7})},
+  {id:"gamer",tier:"bronze",icon:"🎲",n:"Азартный",
+   desc:"Сыграть 5 раз в любые игры",reward:"+10 ОП",op:10,
+   cond:s=>(s.cnt_games||0)>=5,
+   prog:s=>({cur:Math.min(s.cnt_games||0,5),max:5})},
+  {id:"shopper",tier:"bronze",icon:"🛒",n:"Первая покупка",
+   desc:"Купить 1 предмет в магазине",reward:"+5 ОП",op:5,
+   cond:s=>(s.inventory||[]).length>=1,
+   prog:s=>({cur:Math.min((s.inventory||[]).length,1),max:1})},
+
+  // ── СЕРЕБРО ───────────────────────────────────────────────────
+  {id:"gagged",tier:"silver",icon:"🔇",n:"Заткнули",
+   desc:"Получить 20 кляпов",reward:"шмот + стикер",op:0,
+   cond:s=>(s.cnt_gag||0)>=20,
+   prog:s=>({cur:Math.min(s.cnt_gag||0,20),max:20})},
+  {id:"faithful",tier:"silver",icon:"💛",n:"Верный раб",
+   desc:"500 ОП накоплено",reward:"+50 ОП",op:50,
+   cond:s=>s.op>=500,
+   prog:s=>({cur:Math.min(s.op,500),max:500})},
+  {id:"gladiator",tier:"silver",icon:"🗡️",n:"Гладиатор",
+   desc:"50 побед на арене",reward:"редкое оружие",op:0,
+   cond:s=>(s.wins||0)>=50,
+   prog:s=>({cur:Math.min(s.wins||0,50),max:50})},
+  {id:"marathon",tier:"silver",icon:"📅",n:"Марафонец",
+   desc:"Серия 30 дней подряд",reward:"легендарная рамка",op:0,
+   cond:s=>(s.streak_days||0)>=30,
+   prog:s=>({cur:Math.min(s.streak_days||0,30),max:30})},
+  {id:"collector",tier:"silver",icon:"⚜️",n:"Коллекционер",
+   desc:"Собрать 1 полный сет",reward:"бонус сета + стикер",op:0,
+   cond:s=>fullSets(s).length>=1,
+   prog:s=>({cur:Math.min(fullSets(s).length,1),max:1})},
+  {id:"rug",tier:"silver",icon:"🛏️",n:"Личный коврик",
+   desc:"Получать порки 30 дней подряд",reward:"легендарка + «коврик»",op:0,
+   cond:null,prog:null},
+  {id:"hoarder",tier:"silver",icon:"📦",n:"Хомяк подвала",
+   desc:"Собрать 10 предметов в инвентарь",reward:"+30 ОП",op:30,
+   cond:s=>(s.inventory||[]).length>=10,
+   prog:s=>({cur:Math.min((s.inventory||[]).length,10),max:10})},
+  {id:"arena100",tier:"silver",icon:"🏟️",n:"Завсегдатай арены",
+   desc:"100 боёв (победы + поражения)",reward:"+25 ОП",op:25,
+   cond:s=>((s.wins||0)+(s.losses||0))>=100,
+   prog:s=>({cur:Math.min((s.wins||0)+(s.losses||0),100),max:100})},
+
+  // ── ЗОЛОТО ────────────────────────────────────────────────────
+  {id:"hard_bdsm",tier:"gold",icon:"💀",n:"Жёсткое БДСМ",
+   desc:"5000 порок суммарно",reward:"+200 ОП + легендарка + стикер",op:200,
+   cond:s=>(s.cnt_whip||0)>=5000,
+   prog:s=>({cur:Math.min(s.cnt_whip||0,5000),max:5000})},
+  {id:"relic",tier:"gold",icon:"👑",n:"Реликвия подвала",
+   desc:"5000 ОП накоплено",reward:"высший титул + легендарка",op:0,
+   cond:s=>s.op>=5000,
+   prog:s=>({cur:Math.min(s.op,5000),max:5000})},
+  {id:"immortal",tier:"gold",icon:"♾️",n:"Бессмертный",
+   desc:"Серия 365 дней",reward:"титул «Вечный»",op:0,
+   cond:s=>(s.streak_days||0)>=365,
+   prog:s=>({cur:Math.min(s.streak_days||0,365),max:365})},
+  {id:"arena_champ",tier:"gold",icon:"🏆",n:"Чемпион арены",
+   desc:"1000 побед на арене",reward:"оружие «Бензопила»",op:0,
+   cond:s=>(s.wins||0)>=1000,
+   prog:s=>({cur:Math.min(s.wins||0,1000),max:1000})},
+  {id:"op1200",tier:"gold",icon:"⚡",n:"Mistress' Shadow",
+   desc:"Достичь ранга Mistress' Shadow (1200 ОП)",reward:"+100 ОП + особый значок",op:100,
+   cond:s=>s.op>=1200,
+   prog:s=>({cur:Math.min(s.op,1200),max:1200})},
+
+  // ── СЕКРЕТЫ ───────────────────────────────────────────────────
+  {id:"midnight",tier:"secret",icon:"🦉",n:"Полуночник",
+   desc:"???",reward:"стикер «Сова»",op:0,cond:null,prog:null},
+  {id:"masochist",tier:"secret",icon:"🩹",n:"Мазохист со стажем",
+   desc:"???",reward:"шмот «Истёртый ошейник»",op:0,
+   cond:s=>(s.cnt_whip||0)>=100,
+   prog:null},
+  {id:"phoenix",tier:"secret",icon:"🔥",n:"Феникс",
+   desc:"???",reward:"+30 ОП",op:30,cond:null,prog:null},
+  {id:"bloodletting",tier:"secret",icon:"🩸",n:"Кровопускание",
+   desc:"???",reward:"шмот «Алая лента»",op:0,cond:null,prog:null},
+  {id:"favorite_toy",tier:"secret",icon:"🖤",n:"Любимая игрушка",
+   desc:"???",reward:"строка в Книге Госпожи",op:0,cond:null,prog:null},
+  {id:"quiz_master",tier:"secret",icon:"🧠",n:"Знаток Подвала",
+   desc:"???",reward:"+20 ОП + стикер",op:20,cond:null,prog:null},
+];
+const ACH_TIER={bronze:{n:"Бронза",c:"#c97b3a"},silver:{n:"Серебро",c:"#b8c0cc"},gold:{n:"Золото",c:"#d4af37"},secret:{n:"Скрытое",c:"#8a4ad9"}};
+function achById(id){return ACHIEVEMENTS.find(a=>a.id===id);}
+// проверка авто-достижений у раба, возвращает массив новоприсвоенных id
+function checkAchievements(s){
+  const have=new Set(s.ach||[]);
+  const earned=[];
+  ACHIEVEMENTS.forEach(a=>{ if(a.cond && !have.has(a.id) && a.cond(s)) earned.push(a.id); });
+  return earned;
+}
+
+// ===== СЕЗОННЫЙ ПРОПУСК «Путь Покорности» =====
+const SEASON_PER_TIER=100; // ОС за один тир
+const SEASON_MAX_TIER=30;
+// ключевые тиры с наградами (между ними — промежуточные без особых наград)
+const SEASON_REWARDS={
+  5:{free:"+20 ОП",gold:"Стикер сезона"},
+  10:{free:"Rare-шмот",gold:"Сезонная рамка"},
+  15:{free:"1 крутка колеса",gold:"Эксклюзивный титул"},
+  20:{free:"Epic-шмот",gold:"Мифик-косметика"},
+  25:{free:"+50 ОП",gold:"Аура профиля"},
+  30:{free:"Legendary-шмот",gold:"Mythic «Дьявол сезона» + строка в Книге"}
+};
+const WEEKLY_QUESTS=[
+  {n:"Напиши 5 разных ритуалов",os:10},
+  {n:"Выиграй 3 дуэли",os:15},
+  {n:"Получи порку 3 дня подряд",os:15},
+  {n:"Поймай фразу дня",os:20},
+  {n:"Не получи ни одного кляпа за неделю",os:25}
+];
+function seasonTier(os){return Math.min(SEASON_MAX_TIER,Math.floor((os||0)/SEASON_PER_TIER));}
+const TITLES=["Fucking Slave","Chained Hound","Good Little Bitch","Prime Doormat","Certified Simp","Pain Junkie","Gachi Lord ♂","Court Jester","The Disgrace","Mistress' Fool","Head Bitch In Charge","Mistress' Favorite ♀","Leather Daddy","Collared Pet","Dungeon Master ♂"];
+const ACH_BAD=["Spanking Guaranteed — 10 lashes","Collar Issued","Gag Activated","Flogged in Public","Mistress' Doormat","Rock Bottom","Social Credit -1000","Corner Time","Cold Floor","Leashed Up","Quarantine Cage","Demoted"];
+const ACH_GOOD=["Good Boy 🦴","Head Pats","At Her Feet","Mistress' Shield (1 spank block)","Best in Show","Fully Trained","Thong: Crown of the Dungeon","Mistress' Blanket","Personal Rug (luxury)","Golden Bowl"];
+// Приёмы боя: kind задаёт поведение. dmg — базовый разброс, acc — точность, mult — множитель урона
+const MOVES=[
+  {name:"Удар плетью",kind:"normal",dmg:[12,20],acc:0.95,color:"var(--blood)",desc:"Надёжный урон"},
+  {name:"Тяжёлый замах",kind:"heavy",dmg:[22,36],acc:0.65,color:"var(--gold)",desc:"Мощно, но можно промахнуться"},
+  {name:"Двойной рывок",kind:"fast",dmg:[7,12],acc:0.95,color:"var(--violet)",desc:"Два удара, бьёт по скорости"},
+  {name:"Стойка покорности",kind:"guard",dmg:[0,0],acc:1,color:"var(--goldLt)",desc:"Блок: режет след. урон вдвое"},
+  {name:"Печать подчинения",kind:"drain",dmg:[8,14],acc:0.85,color:"var(--bloodDk)",desc:"Урон + чуть лечит тебя"}
+];
+// Ультимейт — открывается при полной Ярости (100). Тратит ярость, игнорирует блок, вешает кровотечение.
+const ULT={name:"Гнев Госпожи",kind:"ult",dmg:[34,48],acc:1,color:"linear-gradient(90deg,var(--blood),var(--gold))",desc:"🔥 Сокрушает блок + кровотечение. Тратит всю Ярость"};
+const RAGE_HIT=18, RAGE_TAKE=12, RAGE_MAX=100, BLEED_TURNS=3, BLEED_DMG=6;
+const ELITE_COUNCIL=5;
+
+// ===== RPG: редкость, слоты, каталог шмота =====
+const RARITY={
+  common:{n:"Обычный",c:"#9aa0a6",mult:1},
+  rare:{n:"Редкий",c:"#3b82f6",mult:1.6},
+  epic:{n:"Эпический",c:"#a855f7",mult:2.4},
+  legend:{n:"Легендарный",c:"#d4af37",mult:3.5},
+  mythic:{n:"Мифический",c:"#c8102e",mult:5}
+};
+// Колесо Судьбы: шансы редкостей (по Книге) и pity-гаранты
+const WHEEL_ODDS=[["common",60],["rare",28],["epic",9],["legend",2.8],["mythic",0.2]];
+const PITY={rare:10,epic:50,legend:90}; // мягкий гарант: каждые N круток
+const SLOTS=[["head","Голова","🎭"],["body","Тело","🦺"],["weapon","Оружие","🔱"],["collar","Ошейник","⛓"],["thong","Стринги","👙"]];
+// каталог шмота: id, имя, слот, редкость, бонусы
+const GEAR=[
+  // ── HEAD ──────────────────────────────────────────────────────
+  {id:"g1",n:"Кожаная маска",slot:"head",r:"common",str:2,def:3,spd:0,
+   desc:"Потёртая маска новичка. Пахнет страхом и покорностью."},
+  {id:"g2",n:"Капюшон ниндзя",slot:"head",r:"rare",str:4,def:5,spd:3,
+   desc:"Скользи в темноте. Враг не видит удар."},
+  {id:"g22",n:"Колпак позора",slot:"head",r:"common",str:0,def:2,spd:1,
+   desc:"Надевается за провинность. Носи с гордостью — или без неё."},
+  {id:"g25",n:"Шёлковая повязка",slot:"head",r:"rare",str:2,def:3,spd:6,
+   desc:"Не видишь — лучше чувствуешь. Скорость реакции ×1.2."},
+  {id:"g30",n:"Маска хаоса",slot:"head",r:"epic",str:8,def:6,spd:4,
+   desc:"Лик без лица. Противник не читает твои движения."},
+  {id:"g3",n:"Корона Госпожи",slot:"head",r:"legend",str:8,def:8,spd:6,
+   desc:"Только у одного раба. Носить — значит быть Любимчиком."},
+  {id:"g15",n:"Маска Тени Госпожи",slot:"head",r:"mythic",str:12,def:12,spd:10,
+   desc:"Пять рун Госпожи выжжены изнутри. Взгляд из-под неё — приговор."},
+
+  // ── BODY ──────────────────────────────────────────────────────
+  {id:"g4",n:"Жилет с шипами",slot:"body",r:"common",str:3,def:4,spd:-1,
+   desc:"Грубая кожа, ржавые шипы. Сдержанный стиль подвала."},
+  {id:"g19",n:"Латексный комбез",slot:"body",r:"rare",str:0,def:4,spd:4,
+   img:"https://raw.githubusercontent.com/Makima-lab/podval/main/LatexKostum_cut.png",
+   pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/LatexKostum_aligned.png?v=2",
+   desc:"Блестит как зеркало, скользит как угорь."},
+  {id:"g23",n:"Кандалы Подвала",slot:"body",r:"epic",str:5,def:10,spd:-2,
+   desc:"Тяжелее — значит покорнее. Защита за счёт свободы."},
+  {id:"g5",n:"Латексный костюм",slot:"body",r:"epic",str:7,def:9,spd:4,
+   desc:"Второй слой кожи. Движения плавные, удары мягкие — но точные."},
+  {id:"g20",n:"Сбруя раба",slot:"body",r:"epic",str:0,def:6,spd:0,
+   img:"https://raw.githubusercontent.com/Makima-lab/podval/main/Portupey_cut.png",
+   pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/Portupey_aligned.png?v=2",
+   desc:"Кожаные ремни держат форму. Видно — кто тут чей."},
+  {id:"g28",n:"Сбруя Лидера",slot:"body",r:"legend",str:12,def:10,spd:5,
+   desc:"Золотые пряжки, кровавая кожа. Раб, дошедший до этого, уже не просто раб."},
+  {id:"g16",n:"Латекс «Кровь и Золото»",slot:"body",r:"legend",str:11,def:13,spd:6,
+   desc:"Ручная работа Госпожи. Каждый шов — награда за верность."},
+
+  // ── WEAPON ────────────────────────────────────────────────────
+  {id:"g26",n:"Деревянная шлёпалка",slot:"weapon",r:"common",str:5,def:0,spd:1,
+   desc:"Классика жанра. Больно не от силы — от звука."},
+  {id:"g6",n:"Бронзовая плеть",slot:"weapon",r:"rare",str:7,def:0,spd:3,
+   img:"https://raw.githubusercontent.com/Makima-lab/podval/main/%D0%9F%D0%BB%D0%B5%D1%82%D1%8C_%D0%B1%D1%80%D0%BE%D0%BD%D0%B7%D0%B0.jpg",
+   desc:"Бронзовая плеть 3-го поколения. Свистит красиво."},
+  {id:"g7",n:"Шипованная булава",slot:"weapon",r:"rare",str:9,def:1,spd:0,
+   desc:"Медленно, но неотвратимо. Как воля Госпожи."},
+  {id:"g24",n:"Плеть Госпожи",slot:"weapon",r:"legend",str:18,def:0,spd:4,
+   desc:"Семь хвостов. Семь грехов. Один удар — конец разговора."},
+  {id:"g8",n:"Бензопила Макимы",slot:"weapon",r:"legend",str:15,def:2,spd:3,
+   desc:"Рычит и жаждет. Дьявол внутри одобряет."},
+  {id:"g14",n:"Бензопила Преданности",slot:"weapon",r:"mythic",str:20,def:3,spd:5,
+   desc:"Цепь пропитана ОП сотен рабов. Режет не тело — волю."},
+
+  // ── COLLAR ────────────────────────────────────────────────────
+  {id:"g9",n:"Стальной ошейник",slot:"collar",r:"common",str:1,def:4,spd:0,
+   desc:"Холодная сталь. Первый знак принадлежности."},
+  {id:"g18",n:"Шипованный ошейник",slot:"collar",r:"rare",str:5,def:1,spd:0,
+   img:"https://raw.githubusercontent.com/Makima-lab/podval/main/Osheinik_cut.png",
+   pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/Osheinik_aligned.png?v=2",
+   desc:"Когда смотришь вниз — видишь шипы. Держит осанку идеально."},
+  {id:"g21",n:"Браслеты Хаоса",slot:"collar",r:"epic",str:5,def:5,spd:2,
+   desc:"Шипованная пара. Носятся на запястьях — символ ограниченной свободы."},
+  {id:"g10",n:"Ошейник с сердцем",slot:"collar",r:"epic",str:4,def:7,spd:5,
+   desc:"Сердечко бьётся — значит всё ещё живой. Хороший знак."},
+  {id:"g27",n:"Серебряный ошейник",slot:"collar",r:"legend",str:8,def:10,spd:5,
+   desc:"Гравировка: «Собственность Макимы». Не подлежит возврату."},
+  {id:"g13",n:"Поводок Госпожи",slot:"collar",r:"legend",str:4,def:12,spd:2,
+   desc:"Золотая цепь толщиной с мизинец. Дёрнешь — упадёшь."},
+
+  // ── THONG ─────────────────────────────────────────────────────
+  {id:"g29",n:"Стринги «Новичок»",slot:"thong",r:"common",str:1,def:2,spd:4,
+   desc:"Базовая экипировка. Ничего не скрывает. Особенно трепет."},
+  {id:"g12",n:"Стринги «Енот»",slot:"thong",r:"rare",str:3,def:3,spd:6,
+   desc:"Полоскатый принт, неожиданно быстрые. Загадочный выбор."},
+  {id:"g11",n:"Стринги «Корона»",slot:"thong",r:"legend",str:6,def:6,spd:10,
+   desc:"Золотой узор по краю. Надев — становишься частью легенды."},
+  {id:"g17",n:"Стринги «Дьявол сезона»",slot:"thong",r:"mythic",str:14,def:10,spd:16,
+   desc:"Выдаются только победителю сезона. Горят красным в темноте."},
+];
+function gearById(id){return GEAR.find(g=>g.id===id);}
+// ===== ПЕРСОНАЖ СЛОЯМИ: база-перс + вырезанный шмот поверх (бумажная кукла) =====
+const BASE_CHAR="https://raw.githubusercontent.com/Makima-lab/podval/main/IMG_20260610_015043_151.jpg";
+const LAYER_ORDER=["body","thong","collar","head","weapon"]; // порядок наложения (низ→верх)
+// Возвращает div со стопкой картинок: база снизу, шмот с прозрачным фоном поверх, всё выровнено.
+function buildCharLayers(s){
+  const eq=s.equipped||{};
+  const base=s.avatar||BASE_CHAR;
+  // база: jpg с чёрным фоном → mix-blend-mode:screen выбивает чёрное на тёмной карточке
+  let html=`<img src="${esc(base)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:screen"/>`;
+  LAYER_ORDER.forEach((slot,i)=>{
+    const g=eq[slot]?gearById(eq[slot]):null;
+    if(g&&g.pose){ // вырезанный слой-картинка кладётся ровно поверх; screen выбивает чёрный фон у PNG
+      html+=`<img src="${esc(g.pose)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;z-index:${i+2}"/>`;
+    }
+  });
+  return `<div style="position:relative;width:100%;height:100%">${html}</div>`;
+}
+// ===== СЕТЫ-КОСТЮМЫ (из Книги): бонус за полный комплект надетых предметов =====
+const SETS=[
+  {id:"hellhound",n:"Адский пёс",items:["g13","g12","g7"],bonus:"+10 Скорость, «рывок» на арене",stat:{spd:10}},
+  {id:"favorite",n:"Любимчик Госпожи",items:["g3","g5","g10"],bonus:"+15 Защита, особый стикер",stat:{def:15}},
+  {id:"chainsaw",n:"Дьявол-бензопила",items:["g15","g16","g14","g13","g17"],bonus:"+30 ко всему, аура в профиле",stat:{str:30,def:30,spd:30}},
+  {id:"dungeon_beast",n:"Зверь Подвала",items:["g20","g18"],bonus:"+8 Защита, +4 Сила (полный сет с маской — позже)",stat:{def:8,str:4}}
+];
+function setById(id){return SETS.find(x=>x.id===id);}
+
+// ===== КАСТОМИЗАЦИЯ ПЕРСОНАЖА (только визуал, силу не меняет) =====
+// unlock(s)->bool — условие открытия. Госпожа видит и может ставить всё.
+const COSMETICS={
+  aura:[
+    {key:"none",n:"Без ауры",css:"none",unlock:()=>true,hint:"базовый вид"},
+    {key:"gold",n:"Золотая аура",css:"0 0 30px rgba(212,175,55,.55)",unlock:s=>s.op>=300,hint:"ранг Leashed Beast (300 ОП)"},
+    {key:"blood",n:"Кровавая аура",css:"0 0 30px rgba(200,16,46,.6)",unlock:s=>(s.wins||0)>=50,hint:"50 побед на арене"},
+    {key:"violet",n:"Неоновый пурпур",css:"0 0 32px rgba(138,74,217,.6)",unlock:s=>fullSets(s).length>=1,hint:"собрать любой сет"},
+    {key:"devil",n:"Аура Дьявола 😈",css:"0 0 40px rgba(200,16,46,.7),0 0 70px rgba(212,175,55,.4)",unlock:s=>s.op>=2500||fullSets(s).some(x=>x.id==='chainsaw'),hint:"ранг Реликвия (2500 ОП) или сет Бензопила"},
+  ],
+  frame:[
+    {key:"basic",n:"Простая",unlock:()=>true,hint:"базовая рамка"},
+    {key:"gilded",n:"Золочёная",unlock:s=>s.op>=150,hint:"ранг Pedigree Hound (150 ОП)"},
+    {key:"thorns",n:"Шипы",unlock:s=>(s.cnt_whip||0)>=100,hint:"100 порок"},
+    {key:"neon",n:"Неон",unlock:s=>(s.lvl||1)>=10,hint:"10-й уровень"},
+  ],
+  scene:[
+    {key:"dungeon",n:"Подвал",bg:"radial-gradient(120% 90% at 50% 0%, #2a0d12 0%, #140a0c 55%, #0c0809 100%)",unlock:()=>true,hint:"базовое логово"},
+    {key:"throne",n:"Зал трона",bg:"radial-gradient(120% 90% at 50% 0%, #2a230d 0%, #14110a 55%, #0c0a08 100%)",unlock:s=>s.op>=600,hint:"ранг Dungeon Alpha (600 ОП)"},
+    {key:"hellfire",n:"Адское пламя",bg:"radial-gradient(120% 90% at 50% 100%, #3a0a0a 0%, #1a0808 55%, #0a0606 100%)",unlock:s=>(s.inventory||[]).some(id=>{const g=gearById(id);return g&&g.r==='mythic';}),hint:"владеть мифик-предметом"},
+    {key:"void",n:"Бездна",bg:"radial-gradient(120% 90% at 50% 50%, #160a26 0%, #0a0814 55%, #060509 100%)",unlock:s=>!!prestigeOf(s.op),hint:"достичь Престижа"},
+  ],
+};
+function cosmeticUnlocked(s,type,key){const o=COSMETICS[type].find(x=>x.key===key);return o?(STATE.isMistress||o.unlock(s)):false;}
+function cosmeticDef(type,key){return COSMETICS[type].find(x=>x.key===key)||COSMETICS[type][0];}
+function getCos(s,type){const c=(s.cosmetics||{})[type];return (c&&cosmeticUnlocked(s,type,c))?c:COSMETICS[type][0].key;}
+// какие сеты полностью НАДЕТЫ на рабе
+function fullSets(s){const eq=Object.values(s.equipped||{});const es=new Set(eq);return SETS.filter(set=>set.items.every(it=>es.has(it)));}
+// бонус статов от собранных сетов
+function setBonus(s){const b={str:0,def:0,spd:0};fullSets(s).forEach(set=>{if(set.stat.str)b.str+=set.stat.str;if(set.stat.def)b.def+=set.stat.def;if(set.stat.spd)b.spd+=set.stat.spd;});return b;}
+// боевая мощь = база статов + уровень + бонусы надетого шмота
+function powerOf(s){
+  let str=s.str||10,def=s.def||10,spd=s.spd||10;
+  const eq=s.equipped||{};
+  Object.values(eq).forEach(id=>{const g=gearById(id);if(g){str+=g.str;def+=g.def;spd+=g.spd;}});
+  const sb=setBonus(s); str+=sb.str; def+=sb.def; spd+=sb.spd;
+  const lvlBonus=(s.lvl||1)*3;
+  return {str:str+lvlBonus,def:def+lvlBonus,spd:spd+lvlBonus,total:Math.round((str+def+spd)*1.0+lvlBonus*3)};
+}
+function xpForNext(lvl){return lvl*100;}
+
+function rankOf(op){let r=0;for(let i=0;i<RANKS.length;i++)if(op>=RANKS[i].min)r=i;return r;}
+function nextRank(op){for(let i=0;i<RANKS.length;i++)if(op<RANKS[i].min)return RANKS[i];return null;}
+function daysLeft(){const n=new Date();const end=new Date(n.getFullYear(),n.getMonth()+1,0);return Math.ceil((end-n)/(1000*60*60*24));}
+
+let STATE={tab:"throne",slaves:[],log:[],isMistress:false,loading:true,slaveId:null,slaveAuth:null,loginToken:null,tgUserId:null,inTelegram:false};
+// если в ссылке ?id=N — это вход раба в своего перса
+(function(){try{const p=new URLSearchParams(location.search);const id=p.get('id');if(id)STATE.slaveId=Number(id);const t=p.get('t');if(t)STATE.loginToken=t;}catch(e){}})();
+// ===== TELEGRAM MINI APP: разворот, тема, определение пользователя =====
+let TG=null;
+function initTelegram(){
+  try{
+    TG=window.Telegram&&window.Telegram.WebApp?window.Telegram.WebApp:null;
+    if(!TG||!TG.initData)return; // не в Telegram — обычный сайт
+    STATE.inTelegram=true;
+    TG.ready(); TG.expand();
+    try{TG.setHeaderColor('#0a0809'); TG.setBackgroundColor('#0a0809');}catch(e){}
+    try{TG.disableVerticalSwipes&&TG.disableVerticalSwipes();}catch(e){}
+    const u=TG.initDataUnsafe&&TG.initDataUnsafe.user;
+    if(u&&u.id)STATE.tgUserId=u.id; // кто открыл приложение
+  }catch(e){}
+}
+// авто-вход по одноразовому токену из бота (?id=N&t=TOKEN)
+async function tryTokenLogin(){
+  if(!STATE.loginToken||!STATE.slaveId)return;
+  try{
+    const {data,error}=await db.rpc('check_login_token',{p_id:STATE.slaveId,p_token:STATE.loginToken});
+    if(!error&&data===true){
+      STATE.slaveAuth=STATE.slaveId;
+      // чистим токен из адресной строки, чтобы не светился и не переиспользовался
+      try{history.replaceState(null,'','?id='+STATE.slaveId);}catch(e){}
+      toast("Кабинет открыт 🔓");
+    }
+  }catch(e){}
+  STATE.loginToken=null;
+}
+
+const SLAVE_COLS='id, nick, op, rank, titles, ach, earned_ach, yard, created_at, lvl, xp, str, def, spd, avatar, inventory, equipped, wins, losses, status, tg_id, tg_username, cnt_whip, cnt_gag, streak_days, streak_last, shards, pity, season_op, pain, game_cd, season_claimed, last_active_award, cosmetics';
+// карта: id ачивки бота -> id ачивки сайта (чтобы во вкладке Награды горели и выданные ботом)
+const BOT_ACH_MAP={first:'first_bow',dog50:'loyal_pup',loyal500:'faithful',relic5000:'relic',porka:'whip_taste',bdsm:'hard_bdsm',gag20:'gagged',masochist:'masochist',midnight:'midnight',streak7:'streak7',streak30:'marathon',streak365:'immortal'};
+async function fetchAll(){
+  const {data:slaves}=await db.from('slaves').select(SLAVE_COLS).order('op',{ascending:false});
+  const {data:log}=await db.from('podval_log').select('*').order('t',{ascending:false}).limit(40);
+  STATE.slaves=(slaves||[]).map(s=>{
+    const ach=Array.isArray(s.ach)?s.ach:JSON.parse(s.ach||'[]');
+    const botAch=(s.earned_ach&&typeof s.earned_ach==='object')?s.earned_ach:JSON.parse(s.earned_ach||'{}');
+    // переносим ачивки, выданные ботом, в общий список сайта
+    const merged=new Set(ach);
+    Object.keys(botAch).forEach(k=>{if(BOT_ACH_MAP[k])merged.add(BOT_ACH_MAP[k]);});
+    return {...s,titles:Array.isArray(s.titles)?s.titles:JSON.parse(s.titles||'[]'),ach:[...merged],inventory:Array.isArray(s.inventory)?s.inventory:JSON.parse(s.inventory||'[]'),equipped:(s.equipped&&typeof s.equipped==='object')?s.equipped:JSON.parse(s.equipped||'{}'),lvl:s.lvl||1,xp:s.xp||0,str:s.str||10,def:s.def||10,spd:s.spd||10,wins:s.wins||0,losses:s.losses||0,status:s.status||'',shards:s.shards||0,season_op:s.season_op||0,pain:s.pain||0,game_cd:(s.game_cd&&typeof s.game_cd==='object')?s.game_cd:JSON.parse(s.game_cd||'{}'),season_claimed:Array.isArray(s.season_claimed)?s.season_claimed:JSON.parse(s.season_claimed||'[]'),pity:(s.pity&&typeof s.pity==='object')?s.pity:JSON.parse(s.pity||'{"sinceRare":0,"sinceEpic":0,"sinceLegend":0,"total":0}'),cosmetics:(s.cosmetics&&typeof s.cosmetics==='object')?s.cosmetics:JSON.parse(s.cosmetics||'{}')};
+  });
+  STATE.log=log||[];STATE.loading=false;render();
+}
+async function pushLog(msg){if(!STATE.isMistress)return;await db.from('podval_log').insert({msg});}
+async function updateSlave(id,patch){
+  if(!STATE.isMistress){toast("Только Госпожа может это делать");return;}
+  if(patch.op!==undefined)patch.rank=rankOf(patch.op);
+  await db.from('slaves').update(patch).eq('id',id);
+  await autoAchievements(id);   // проверить и выдать авто-достижения
+  await fetchAll();
+}
+// Проверяет условия достижений по свежим данным раба, выдаёт новые + бонусные ОП
+async function autoAchievements(id){
+  const {data:rows}=await db.from('slaves').select(SLAVE_COLS).eq('id',id).limit(1);
+  if(!rows||!rows[0])return;
+  const raw=rows[0];
+  const s={...raw,
+    ach:Array.isArray(raw.ach)?raw.ach:JSON.parse(raw.ach||'[]'),
+    equipped:(raw.equipped&&typeof raw.equipped==='object')?raw.equipped:JSON.parse(raw.equipped||'{}'),
+    inventory:Array.isArray(raw.inventory)?raw.inventory:JSON.parse(raw.inventory||'[]')};
+  const earned=checkAchievements(s);
+  if(!earned.length)return;
+  let bonus=0; earned.forEach(aid=>{const a=achById(aid);if(a&&a.op)bonus+=a.op;});
+  const newAch=[...new Set([...(s.ach||[]),...earned])];
+  const newOp=(s.op||0)+bonus;
+  await db.from('slaves').update({ach:newAch,op:newOp,rank:rankOf(newOp)}).eq('id',id);
+  for(const aid of earned){const a=achById(aid);await db.from('podval_log').insert({msg:"🏆 «"+s.nick+"» открыл достижение «"+a.n+"»"+(a.op?" (+"+a.op+" ОП)":"")});}
+}
+async function addSlave(nick){if(!STATE.isMistress)return;await db.from('slaves').insert({nick,op:0,rank:0,titles:[],ach:[],yard:false});await pushLog("🩸 Свежее мясо «"+nick+"» заползло в подвал");await fetchAll();}
+async function removeSlave(id,nick){if(!STATE.isMistress)return;await db.from('slaves').delete().eq('id',id);await pushLog("🧹 «"+nick+"» вычищен из подвала");await fetchAll();}
+async function checkSession(){const {data}=await db.auth.getSession();STATE.isMistress=!!(data&&data.session);}
+async function login(email,pass){const {error}=await db.auth.signInWithPassword({email,password:pass});if(error){toast("Не вышло войти");return false;}await checkSession();await fetchAll();return true;}
+async function logout(){await db.auth.signOut();STATE.isMistress=false;render();}
+
+const app=document.getElementById('app');
+function el(h){const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild;}
+function toast(msg){const t=el(`<div style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--gold);color:var(--gold);padding:10px 18px;border-radius:30px;z-index:99;font-size:13px;font-weight:700">${esc(msg)}</div>`);document.body.appendChild(t);setTimeout(()=>t.remove(),2200);}
+
+function render(){
+  if(STATE.loading){app.innerHTML='<div style="min-height:100vh;display:grid;place-items:center;color:var(--gold);font-family:Cinzel;letter-spacing:2px">Отпираем двери подвала…</div>';return;}
+  // режим раба по личной ссылке (?id=N) и не Госпожа
+  const slaveMode = STATE.slaveId && !STATE.isMistress;
+  const me = slaveMode ? STATE.slaves.find(x=>x.id===STATE.slaveId) : null;
+  if(slaveMode && me){ heroSel = me.id; if(!["hero","room","cup","arena","ach","shop","games"].includes(STATE.tab)) STATE.tab="hero"; }
+  const TABS = slaveMode
+    ? [["hero","Мой перс"],["room","Комната"],["games","Игры"],["ach","Награды"],["shop","Магазин"],["arena","Арена"],["cup","Сезон"]]
+    : [["throne","Трон"],["hero","Перс"],["slaves","Рабы"],["wheel","Колесо"],["games","Игры"],["shop","Магазин"],["ach","Награды"],["arena","Арена"],["court","Суд"],["cup","Сезон"]];
+  app.innerHTML=`
+    <header>
+      <div class="brandrow">
+        <div class="crest">М</div>
+        <div style="flex:1">
+          <div class="brandname">ПОДВАЛ МАКИМЫ</div>
+          <div class="brandsub">${STATE.isMistress?"Трон Госпожи · полная власть":(slaveMode&&me?("Твой перс · "+esc(me.nick)+(STATE.slaveAuth===me.id?" 🔓":" 🔒")):"Витрина · склони голову")}</div>
+        </div>
+        ${STATE.isMistress?`<button class="tapbtn btn sm ghost" onclick="logout()">Выйти</button>`
+          :slaveMode?(STATE.slaveAuth===(me&&me.id)
+            ?`<button class="tapbtn btn sm ghost" onclick="slaveLogout()">Выйти</button>`
+            :`<button class="tapbtn btn sm gold" onclick="openSlaveLogin()">Войти (PIN)</button>`)
+          :`<button class="tapbtn btn sm gold" onclick="openLogin()">Вход Госпожи</button>`}
+      </div>
+      <nav>${TABS.map(([k,l])=>`<button class="tapbtn ${STATE.tab===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('')}</nav>
+    </header>
+    <main id="main"></main>
+    <footer>⛓ &nbsp; 18+ · ВСЁ ПО ФАНУ · СЛОВО ГОСПОЖИ — ЗАКОН &nbsp; ⛓</footer>`;
+  const m=document.getElementById('main');
+  ({throne:renderThrone,hero:renderHero,room:renderRoom,slaves:renderSlaves,wheel:renderWheel,shop:renderShop,games:renderGames,ach:renderAch,arena:renderArena,court:renderCourt,cup:renderCup}[STATE.tab])(m);
+}
+function go(t){STATE.tab=t;render();}
+
+function renderThrone(m){
+  const total=STATE.slaves.reduce((a,s)=>a+s.op,0);
+  const top=STATE.slaves[0];
+  const dm=STATE.slaves.find(s=>s.titles.some(t=>t.includes("Dungeon Master")));
+  m.innerHTML=`
+    <div class="banner"><h1>ЗАЛ ТРОНА</h1><div class="s">Госпожа видит всё. Подвал у твоих ног.</div></div>
+    <div class="countdown"><div class="t">${daysLeft()} ДНЕЙ</div><div class="l">до конца сезона · потом корона уйдёт</div></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px">
+      <div class="stat corner"><div class="v" style="color:var(--blood)">${STATE.slaves.length}</div><div class="l">Рабов</div></div>
+      <div class="stat corner"><div class="v" style="color:var(--gold)">${total}</div><div class="l">Очков ОП</div></div>
+      <div class="stat corner"><div class="v" style="color:var(--violet)">${dm?"♛":"—"}</div><div class="l">Dungeon Master</div></div>
+    </div>
+    ${top?`<div class="sect">Венценосный пёс</div>
+    <div class="card gilded corner" style="display:flex;justify-content:space-between;align-items:center;animation:glow 5s infinite">
+      <div><div style="font-size:18px;font-weight:800;display:flex;align-items:center;gap:7px">♛ ${esc(top.nick)}</div>
+      <div style="font-size:12px;color:var(--gold)">${RANKS[top.rank].icon} ${RANKS[top.rank].n}</div></div>
+      <div style="text-align:right"><div style="font-family:Cinzel;font-size:24px;font-weight:900;color:var(--gold)">${top.op}</div><div style="font-size:10px;color:var(--faint)">ОП</div></div>
+    </div>`:''}
+    ${(()=>{
+      const totalPain=STATE.slaves.reduce((a,s)=>a+(s.pain||0),0);
+      const sleeping=STATE.slaves.filter(s=>{const d=inactiveDays(s);return d!==null&&d>=14;});
+      const activeToday=STATE.slaves.filter(s=>{const d=inactiveDays(s);return d===0;}).length;
+      const painTop=[...STATE.slaves].filter(s=>s.pain>0).sort((a,b)=>b.pain-a.pain).slice(0,3);
+      return `<div class="sect">Экономика подвала</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px">
+        <div class="stat corner"><div class="v" style="color:#ff6b6b">🩸${totalPain}</div><div class="l">Очков Боли в обороте</div></div>
+        <div class="stat corner"><div class="v" style="color:#46c98a">${activeToday}</div><div class="l">активны сегодня</div></div>
+        <div class="stat corner"><div class="v" style="color:${sleeping.length?'var(--blood)':'var(--faint)'}">${sleeping.length}</div><div class="l">спят 14+ дн.</div></div>
+      </div>
+      ${painTop.length?`<div class="card corner"><div class="lbl">Богачи Боли</div>${painTop.map((s,i)=>`<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px"><span>${['🥇','🥈','🥉'][i]} ${esc(s.nick)}</span><span style="color:#ff6b6b;font-weight:700">🩸${s.pain}</span></div>`).join('')}</div>`:''}
+      ${sleeping.length?`<div class="card corner" style="border-color:var(--bloodDk);margin-top:8px"><div class="lbl" style="color:var(--blood)">💀 Кандидаты на чистку (спят 14+ дней)</div>${sleeping.slice(0,8).map(s=>`<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px"><span>${esc(s.nick)}</span><span class="muted">${inactiveDays(s)} дн.</span></div>`).join('')}</div>`:''}`;
+    })()}
+    <div class="sect">Хроника подвала</div>
+    ${STATE.log.length===0?'<div class="card muted" style="text-align:center">Тишина. Накажи кого-нибудь — и стены оживут.</div>':STATE.log.map(l=>`<div class="card" style="padding:11px 13px;font-size:13px">${esc(l.msg)}</div>`).join('')}
+  `;
+}
+
+let openId=null;
+let heroSel=null; // выбранный перс для просмотра
+
+function renderHero(m){
+  const list=STATE.slaves;
+  if(list.length===0){m.innerHTML='<div class="banner"><h1>ПЕРСОНАЖ</h1></div><div class="card muted">Сначала заведи рабов.</div>';return;}
+  if(heroSel===null)heroSel=list[0].id;
+  const s=list.find(x=>x.id===heroSel)||list[0];
+  // право менять экипировку: Госпожа — всегда; раб — только своего перса по ссылке
+  const canEdit = STATE.isMistress || (STATE.slaveAuth===s.id);
+  const p=powerOf(s);
+  const eq=s.equipped||{};
+  const nextXp=xpForNext(s.lvl||1);
+  const xpPct=Math.min(100,Math.round(((s.xp||0)/nextXp)*100));
+  // образ перса: если надет шмот с картинкой-позой — показываем её, иначе базовый аватар
+  let shownImg=s.avatar||"";
+  const eqList=Object.values(s.equipped||{});
+  for(const gid of eqList){const g=gearById(gid);if(g&&g.pose){shownImg=g.pose;}}
+  // косметика: аура, рамка, выбранный титул
+  const cosAura=cosmeticDef('aura',getCos(s,'aura'));
+  const cosFrame=getCos(s,'frame');
+  const frameStyle={basic:'border:1px solid var(--goldDk)',gilded:'border:1.5px solid var(--gold);box-shadow:inset 0 0 0 1px rgba(212,175,55,.2)',thorns:'border:2px dashed var(--blood)',neon:'border:1.5px solid var(--violet);box-shadow:inset 0 0 14px rgba(138,74,217,.25)'}[cosFrame]||'border:1px solid var(--goldDk)';
+  const auraStyle=cosAura.css&&cosAura.css!=='none'?(';box-shadow:'+cosAura.css):'';
+  const ctitle=(s.cosmetics||{}).title;
+  const pickedTitle=(ctitle&&(s.titles||[]).includes(ctitle))?ctitle:null;
+  m.innerHTML=`
+    <div class="banner"><h1>ПЕРСОНАЖ</h1><div class="s">Наряжай, качай, собирай редкий шмот. Сила решает в бою.</div></div>
+    <div class="card corner"><div class="lbl">Чей перс</div>
+      <select onchange="heroSel=Number(this.value);render()">${list.map(x=>`<option value="${x.id}" ${x.id===s.id?'selected':''}>${esc(x.nick)}</option>`).join('')}</select>
+    </div>
+
+    <!-- псевдо-3D карточка персонажа -->
+    <div class="hero3d corner" style="${frameStyle}${auraStyle}">
+      <div class="hero3d-glow"></div>
+      <div class="hero3d-av">${buildCharLayers(s)}</div>
+      <div class="hero3d-lvl">LVL ${s.lvl||1}</div>
+      <div class="hero3d-name">${esc(s.nick)}</div>
+      ${pickedTitle?`<div style="font-size:11px;color:#c9a0ff;font-weight:700;margin-top:3px">「 ${esc(pickedTitle)} 」</div>`:''}
+      ${s.status?`<div style="font-size:11px;color:var(--goldLt);font-style:italic;margin-top:2px">✦ ${esc(s.status)}</div>`:''}
+      <div class="hero3d-power">⚔ Мощь: <b>${p.total}</b></div>
+    </div>
+
+    <!-- Кошелёк раба -->
+    <div class="row" style="gap:7px;margin-top:11px">
+      <div class="card corner" style="margin:0;flex:1;text-align:center;padding:11px 6px"><div style="font-family:Cinzel;font-size:18px;font-weight:900;color:var(--blood)">${s.op}</div><div style="font-size:9px;color:var(--faint)">ОП</div></div>
+      <div class="card corner" style="margin:0;flex:1;text-align:center;padding:11px 6px"><div style="font-family:Cinzel;font-size:18px;font-weight:900;color:var(--gold)">🩸${s.pain||0}</div><div style="font-size:9px;color:var(--faint)">БОЛЬ</div></div>
+      <div class="card corner" style="margin:0;flex:1;text-align:center;padding:11px 6px"><div style="font-family:Cinzel;font-size:18px;font-weight:900;color:#5b8def">💎${s.shards||0}</div><div style="font-size:9px;color:var(--faint)">ОСКОЛКИ</div></div>
+      <div class="card corner" style="margin:0;flex:1;text-align:center;padding:11px 6px"><div style="font-family:Cinzel;font-size:18px;font-weight:900;color:#ff8c42">🔥${s.streak_days||0}</div><div style="font-size:9px;color:var(--faint)">СЕРИЯ</div></div>
+    </div>
+
+    <!-- XP -->
+    <div class="card corner" style="margin-top:11px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--faint)"><span>ОПЫТ</span><span>${s.xp||0} / ${nextXp}</span></div>
+      <div class="prog"><div style="width:${xpPct}%"></div></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <div style="flex:1;text-align:center"><div style="font-family:Cinzel;font-size:20px;font-weight:900;color:#ff6b6b">${p.str}</div><div style="font-size:9px;color:var(--faint);text-transform:uppercase">Сила</div></div>
+        <div style="flex:1;text-align:center"><div style="font-family:Cinzel;font-size:20px;font-weight:900;color:#5b8def">${p.def}</div><div style="font-size:9px;color:var(--faint);text-transform:uppercase">Защита</div></div>
+        <div style="flex:1;text-align:center"><div style="font-family:Cinzel;font-size:20px;font-weight:900;color:#46c98a">${p.spd}</div><div style="font-size:9px;color:var(--faint);text-transform:uppercase">Скорость</div></div>
+      </div>
+    </div>
+
+    <!-- Ранг · привилегия · престиж · сеты -->
+    <div class="card corner" style="margin-top:11px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:22px">${RANKS[s.rank].icon}</span>
+        <div style="flex:1">
+          <div style="font-weight:800;color:var(--gold)">${RANKS[s.rank].n}</div>
+          <div class="muted" style="font-size:11px">${esc(RANKS[s.rank].perk)}</div>
+        </div>
+        ${(()=>{const pr=prestigeOf(s.op);return pr?`<span class="pill" style="background:rgba(212,175,55,.16)">${pr.icon} ${esc(pr.ru)}</span>`:'';})()}
+      </div>
+      ${(()=>{const fs=fullSets(s);return fs.length?`<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:9px"><div class="lbl">Собранные сеты</div>${fs.map(set=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0"><span style="color:var(--gold);font-weight:700">${set.id==='chainsaw'?'😈 ':'⚜ '}${esc(set.n)}</span><span class="muted">${esc(set.bonus)}</span></div>`).join('')}</div>`:'';})()}
+    </div>
+
+    ${STATE.isMistress?`<div class="card corner"><div class="lbl">Прокачка (за счёт Госпожи)</div>
+      <div class="row">
+        <button class="tapbtn btn sm" onclick="trainStat(${s.id},'str')">+ Сила (5 ОП)</button>
+        <button class="tapbtn btn sm" onclick="trainStat(${s.id},'def')">+ Защита (5 ОП)</button>
+        <button class="tapbtn btn sm" onclick="trainStat(${s.id},'spd')">+ Скорость (5 ОП)</button>
+        <button class="tapbtn btn sm gold" onclick="giveXp(${s.id},50)">+ 50 опыта</button>
+      </div>
+      <div class="lbl" style="margin-top:12px">Аватар (ссылка на картинку)</div>
+      <div class="row" style="flex-wrap:nowrap"><input id="avurl" placeholder="https://..." value="${esc(s.avatar||'')}"/><button class="tapbtn btn sm" onclick="setAvatar(${s.id})">OK</button></div>
+    </div>`:''}
+
+    ${canEdit?`<!-- кастомизация -->
+    <div class="sect">🎨 Кастомизация</div>
+    <div class="card corner">
+      ${['aura','frame','scene'].map(type=>{
+        const label={aura:'Аура',frame:'Рамка',scene:'Фон логова'}[type];
+        const cur=getCos(s,type);
+        return `<div style="margin-bottom:12px">
+          <div class="lbl" style="margin-bottom:7px">${label}</div>
+          <div class="row" style="gap:6px">${COSMETICS[type].map(o=>{
+            const unlocked=cosmeticUnlocked(s,type,o.key);
+            const active=cur===o.key;
+            return `<button class="tapbtn btn sm ${active?'gold':'ghost'}" style="${unlocked?'':'opacity:.4'}" ${unlocked?'':'disabled'} title="${unlocked?'':'🔒 '+esc(o.hint)}" onclick="setCosmetic(${s.id},'${type}','${o.key}')">${active?'✓ ':''}${esc(o.n)}${unlocked?'':' 🔒'}</button>`;
+          }).join('')}</div>
+        </div>`;
+      }).join('')}
+      <div style="margin-bottom:4px">
+        <div class="lbl" style="margin-bottom:7px">Титул на карточке</div>
+        ${(s.titles||[]).length?`<div class="row" style="gap:6px">
+          <button class="tapbtn btn sm ${!((s.cosmetics||{}).title)?'gold':'ghost'}" onclick="setCosmetic(${s.id},'title','none')">Без титула</button>
+          ${s.titles.map(t=>`<button class="tapbtn btn sm ${(s.cosmetics||{}).title===t?'gold':'ghost'}" onclick="setCosmetic(${s.id},'title','${escq(t)}')">${esc(t)}</button>`).join('')}
+        </div>`:'<div class="muted" style="font-size:11px">Титулы выдаёт Госпожа — тогда их можно надеть.</div>'}
+      </div>
+    </div>`:''}
+
+    <!-- слоты экипировки -->
+    <div class="sect">Экипировка</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:12px">
+      ${SLOTS.map(([slot,name,ic])=>{const g=eq[slot]?gearById(eq[slot]):null;const col=g?RARITY[g.r].c:'var(--line)';return `<div class="slot corner" style="border-color:${col}" ${canEdit?`onclick="openGearPicker(${s.id},'${slot}')"`:''}>
+        <div style="font-size:20px">${ic}</div>
+        <div style="font-size:8px;color:var(--faint);margin-top:2px">${name}</div>
+        ${g?`<div style="font-size:8px;color:${col};margin-top:3px;font-weight:700;line-height:1.1">${esc(g.n)}</div>`:`<div style="font-size:8px;color:var(--faint);margin-top:3px">пусто</div>`}
+      </div>`;}).join('')}
+    </div>
+
+    <!-- инвентарь -->
+    <div class="sect">Инвентарь ${s.inventory&&s.inventory.length?'· '+s.inventory.length+'/'+GEAR.length:''}</div>
+    ${(!s.inventory||s.inventory.length===0)?'<div class="card muted" style="text-align:center;padding:22px">Пусто.<br><span style="font-size:12px;color:var(--faint)">Крути Колесо или побеждай на арене.</span></div>':
+      `<div class="inv-grid">${s.inventory.map(id=>{const g=gearById(id);if(!g)return'';const col=RARITY[g.r].c;const worn=Object.values(eq).includes(id);const glowClass={mythic:'rglow-myth',legend:'rglow-leg',epic:'rglow-epic',rare:'rglow-rare'}[g.r]||'';return `<div class="gear-card corner ${glowClass}" style="border:1.5px solid ${col}40;margin:0">
+        <div class="gear-img-w">
+          ${g.img?`<img src="${esc(g.img)}" alt="${esc(g.n)}"/>`:`<span class="gear-slot-ic">${(SLOTS.find(sl=>sl[0]===g.slot)||['','','❔'])[2]}</span>`}
+          ${worn?`<span class="gear-worn-badge">НАДЕТО</span>`:''}
+        </div>
+        <div style="font-size:8.5px;color:${col};text-transform:uppercase;font-weight:800;letter-spacing:.6px;margin-bottom:2px">${RARITY[g.r].n}</div>
+        <div style="font-weight:800;font-size:12.5px;line-height:1.2;margin-bottom:4px">${esc(g.n)}</div>
+        ${g.desc?`<div style="font-size:10px;color:var(--faint);line-height:1.35;margin-bottom:6px;font-style:italic">${esc(g.desc)}</div>`:''}
+        <div class="stat-mini">
+          <span style="color:#ff6b6b">💪${g.str>=0?'+':''}${g.str}</span>
+          <span style="color:#5b8def">🛡${g.def>=0?'+':''}${g.def}</span>
+          <span style="color:#46c98a">⚡${g.spd>=0?'+':''}${g.spd}</span>
+        </div>
+        ${canEdit?`<button class="tapbtn btn sm ${worn?'ghost':'gold'}" style="margin-top:9px;width:100%" onclick="${worn?`unequip(${s.id},'${g.slot}')`:`equip(${s.id},'${g.id}')`}">${worn?'Снять ✕':'Надеть ✓'}</button>`:`<div class="muted" style="margin-top:6px;font-size:10px">${worn?'✓ надето':''}</div>`}
+        ${STATE.isMistress?`<button class="tapbtn btn sm" style="margin-top:5px;width:100%;background:var(--bloodDk);color:#ffaaaa" onclick="takeGear(${s.id},'${g.id}')">Забрать</button>`:''}
+      </div>`;}).join('')}</div>`}
+
+    ${STATE.isMistress?`<div class="sect">Выдать шмот (дроп)</div>
+      <div class="card corner"><select id="givegear"><option value="">Выбери предмет…</option>${GEAR.map(g=>`<option value="${g.id}">[${RARITY[g.r].n}] ${g.n} (💪${g.str} 🛡${g.def} ⚡${g.spd})</option>`).join('')}</select>
+      <button class="tapbtn btn gold" style="width:100%;margin-top:9px" onclick="giveGear(${s.id})">Выдать в инвентарь</button></div>`:''}
+  `;
+}
+async function trainStat(id,stat){const s=STATE.slaves.find(x=>x.id===id);if(s.op<5){toast("Мало ОП (нужно 5)");return;}const patch={op:s.op-5};patch[stat]=(s[stat]||10)+1;await updateSlave(id,patch);await pushLog("🏋️ «"+s.nick+"» прокачал "+({str:'Силу',def:'Защиту',spd:'Скорость'}[stat]));}
+async function giveXp(id,amt){const s=STATE.slaves.find(x=>x.id===id);let xp=(s.xp||0)+amt,lvl=s.lvl||1;let leveled=false;while(xp>=xpForNext(lvl)){xp-=xpForNext(lvl);lvl++;leveled=true;}await updateSlave(id,{xp,lvl});if(leveled){await pushLog("⬆️ «"+s.nick+"» апнул уровень — теперь LVL "+lvl);toast("Уровень повышен! LVL "+lvl);}}
+async function setAvatar(id){const v=document.getElementById('avurl').value.trim();await updateSlave(id,{avatar:v});toast("Аватар обновлён");}
+async function giveGear(id){const gid=document.getElementById('givegear').value;if(!gid)return;const s=STATE.slaves.find(x=>x.id===id);await updateSlave(id,{inventory:[...(s.inventory||[]),gid]});const g=gearById(gid);await pushLog("🎁 «"+s.nick+"» получил ["+RARITY[g.r].n+"] "+g.n);toast("Выдано: "+g.n);}
+async function takeGear(id,gid){const s=STATE.slaves.find(x=>x.id===id);const g=gearById(gid);if(!confirm("Забрать «"+(g?g.n:'предмет')+"» у «"+s.nick+"»?"))return;const inv=[...(s.inventory||[])];const idx=inv.indexOf(gid);if(idx>-1)inv.splice(idx,1);const eq={...(s.equipped||{})};Object.keys(eq).forEach(k=>{if(eq[k]===gid)delete eq[k];});await updateSlave(id,{inventory:inv,equipped:eq});await pushLog("🧤 Госпожа забрала у «"+s.nick+"» "+(g?g.n:'предмет'));toast("Забрано");}
+async function equip(id,gid){const s=STATE.slaves.find(x=>x.id===id);const g=gearById(gid);const eq={...(s.equipped||{})};eq[g.slot]=gid;await saveEquip(id,eq);}
+async function unequip(id,slot){const s=STATE.slaves.find(x=>x.id===id);const eq={...(s.equipped||{})};delete eq[slot];await saveEquip(id,eq);}
+async function saveEquip(id,eq){
+  if(STATE.isMistress){await updateSlave(id,{equipped:eq});return;}
+  // раб по ссылке — через безопасную функцию базы (меняет только свою экипировку)
+  const {error}=await db.rpc('slave_equip',{p_id:id,p_equipped:eq});
+  if(error){toast("Не вышло сменить шмот");return;}
+  await fetchAll();
+}
+// смена косметики: Госпожа пишет напрямую, раб — через защищённый RPC (визуал, силу не трогает)
+async function setCosmetic(id,type,key){
+  const s=STATE.slaves.find(x=>x.id===id);if(!s)return;
+  const canEdit=STATE.isMistress||STATE.slaveAuth===id;
+  if(!canEdit)return;
+  if(type!=='title'&&!cosmeticUnlocked(s,type,key)){toast("🔒 Ещё не открыто");return;}
+  const cos={...(s.cosmetics||{})};
+  if(key==='none'&&type==='title')delete cos.title; else cos[type]=key;
+  if(STATE.isMistress){await db.from('slaves').update({cosmetics:cos}).eq('id',id);await fetchAll();toast("Вид обновлён 🎨");return;}
+  const pin=mySlavePin();
+  const {data,error}=await db.rpc('slave_set_cosmetics',{p_id:id,p_pin:pin,p_cosmetics:cos});
+  if(error||!data||!data.ok){toast("Не вышло сменить вид");return;}
+  await fetchAll();toast("Вид обновлён 🎨");
+}
+function openGearPicker(id,slot){const s=STATE.slaves.find(x=>x.id===id);const owned=(s.inventory||[]).map(gearById).filter(g=>g&&g.slot===slot);if(owned.length===0){toast("Нет шмота для слота");return;}const cur=(s.equipped||{})[slot];const m=el(`<div class="modal" onclick="if(event.target===this)this.remove()"><div class="box corner"><div style="font-family:Cinzel;font-size:17px;font-weight:900;color:var(--gold);margin-bottom:12px">Слот: ${SLOTS.find(x=>x[0]===slot)[1]}</div>${owned.map(g=>`<div class="card corner" style="border-color:${RARITY[g.r].c};cursor:pointer" onclick="equip(${id},'${g.id}');document.querySelector('.modal').remove()"><div style="font-weight:800">${esc(g.n)} ${cur===g.id?'✓':''}</div><div style="font-size:10px;color:var(--dim)">💪${g.str} 🛡${g.def} ⚡${g.spd}</div></div>`).join('')}${cur?`<button class="tapbtn btn ghost" style="width:100%" onclick="unequip(${id},'${slot}');document.querySelector('.modal').remove()">Снять текущее</button>`:''}</div></div>`);document.body.appendChild(m);}
+
+function inactiveDays(s){if(!s.last_active_award)return null;const d=Math.floor((Date.now()-new Date(s.last_active_award).getTime())/86400000);return d;}
+function inactiveBadge(s){const d=inactiveDays(s);if(d===null)return '<span class="pill" style="background:rgba(138,106,110,.18);color:#8a6a6e">не заходил</span>';if(d>=30)return `<span class="pill" style="background:rgba(200,16,46,.18);color:var(--blood)">💀 спит ${d} дн.</span>`;if(d>=14)return `<span class="pill" style="background:rgba(212,175,55,.15);color:var(--gold)">😴 ${d} дн.</span>`;if(d>=7)return `<span class="pill" style="color:var(--dim)">${d} дн. назад</span>`;return '';}
+function renderSlaves(m){
+  if(!STATE.isMistress){m.innerHTML=`<div class="banner"><h1>РЕЕСТР РАБОВ</h1><div class="s">Только Госпожа правит. Ты — смотришь и завидуешь.</div></div>`+slaveList(false);return;}
+  m.innerHTML=`<div class="banner"><h1>РЕЕСТР РАБОВ</h1><div class="s">Раздавай очки, ранги, титулы, ачивки — одним касанием.</div></div>
+    <div class="row" style="margin-bottom:14px;flex-wrap:nowrap">
+      <input id="newnick" placeholder="Ник нового мяса…" />
+      <button class="tapbtn btn gold" onclick="doAdd()">Завести</button>
+    </div>${slaveList(true)}`;
+}
+function slaveList(edit){
+  return STATE.slaves.map(s=>{
+    const nr=nextRank(s.op),prevMin=RANKS[s.rank].min,span=nr?nr.min-prevMin:1,prog=nr?Math.min(100,Math.round(((s.op-prevMin)/span)*100)):100;
+    const isDM=s.titles.some(t=>t.includes("Dungeon Master"));
+    const open=edit&&openId===s.id;
+    return `<div class="card corner ${isDM?'gilded':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;${edit?'cursor:pointer':''}" ${edit?`onclick="toggle(${s.id})"`:''}>
+        <div style="flex:1">
+          <div style="font-size:16px;font-weight:800;display:flex;align-items:center;gap:7px;flex-wrap:wrap">${isDM?'♛ ':''}${esc(s.nick)} ${s.yard?'<span class="pill">учсовет</span>':''} ${isDM?'<span class="pill">DM ♂</span>':''}${edit?inactiveBadge(s):''}</div>
+          ${s.status?`<div style="font-size:11px;color:var(--gold);font-style:italic;margin-top:1px">✦ ${esc(s.status)}</div>`:''}
+          <div style="font-size:12px;color:var(--gold);margin-top:2px">${RANKS[s.rank].icon} ${RANKS[s.rank].n}</div>
+          <div class="prog"><div style="width:${prog}%"></div></div>
+          <div style="font-size:10px;color:var(--faint);margin-top:3px">${nr?s.op+'/'+nr.min+' ОП до «'+nr.n+'»':'★ Высший ранг — Реликвия'}</div>
+        </div>
+        <div style="text-align:right;margin-left:12px"><div style="font-family:Cinzel;font-size:22px;font-weight:900;color:${isDM?'var(--gold)':'var(--blood)'}">${s.op}</div><div style="font-size:10px;color:var(--faint)">ОП</div></div>
+      </div>
+      ${open?editPanel(s):''}</div>`;
+  }).join('');
+}
+function editPanel(s){
+  return `<div style="margin-top:13px;border-top:1px solid var(--line);padding-top:13px">
+    <div class="lbl">Очки покорности</div>
+    <div class="row" style="margin-bottom:13px">${[-10,-5,1,3,5,10,15].map(d=>`<button class="tapbtn btn sm ${d>0?'gold':''}" style="${d<0?'background:var(--bloodDk)':''}" onclick="opChange(${s.id},${d})">${d>0?'+':''}${d}</button>`).join('')}</div>
+    <div class="lbl">Титулы</div>
+    <div style="margin-bottom:8px">${s.titles.map(t=>`<span class="tag" style="background:rgba(138,74,217,.15);color:var(--violet);border:1px solid rgba(138,74,217,.4);cursor:pointer" onclick="delTitle(${s.id},'${escq(t)}')">${esc(t)} ✕</span>`).join('')||'<span class="muted">нет</span>'}</div>
+    <select onchange="addTitle(${s.id},this.value);this.value=''" style="margin-bottom:13px"><option value="">+ выдать титул…</option>${TITLES.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('')}</select>
+    <div class="lbl">Ачивки</div>
+    <div style="margin-bottom:8px">${s.ach.map(a=>{const g=ACH_GOOD.includes(a);return `<span class="tag" style="background:${g?'rgba(70,201,138,.13);color:var(--good);border:1px solid rgba(70,201,138,.4)':'rgba(200,16,46,.13);color:var(--blood);border:1px solid rgba(200,16,46,.4)'};cursor:pointer" onclick="delAch(${s.id},'${escq(a)}')">${esc(a)} ✕</span>`;}).join('')||'<span class="muted">чисто</span>'}</div>
+    <div class="row" style="margin-bottom:13px">
+      <select onchange="addAch(${s.id},this.value);this.value=''"><option value="">+ наказание…</option>${ACH_BAD.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('')}</select>
+      <select onchange="addAch(${s.id},this.value);this.value=''"><option value="">+ награда…</option>${ACH_GOOD.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('')}</select>
+    </div>
+    <div class="row">
+      <button class="tapbtn btn sm" style="background:var(--violet)" onclick="doRename(${s.id})">Переименовать</button>
+      <button class="tapbtn btn sm gold" onclick="doStatus(${s.id})">Статус ✦</button>
+      <button class="tapbtn btn sm" style="background:#1f6feb" onclick="copySlaveLink(${s.id})">🔗 Ссылка рабу</button>
+      <button class="tapbtn btn sm" style="background:var(--violet)" onclick="setPin(${s.id})">🔑 PIN раба</button>
+      <button class="tapbtn btn sm ${s.yard?'gold':'ghost'}" onclick="toggleYard(${s.id},${s.yard})">${s.yard?'Снять с учсовета':'В учсовет'}</button>
+      <button class="tapbtn btn sm" style="background:var(--bloodDk)" onclick="doRemove(${s.id})">Изгнать</button>
+    </div></div>`;
+}
+function toggle(id){openId=openId===id?null:id;render();}
+async function doAdd(){const v=document.getElementById('newnick').value.trim();if(v)await addSlave(v);}
+async function opChange(id,d){const s=STATE.slaves.find(x=>x.id===id);await updateSlave(id,{op:Math.max(0,s.op+d)});await pushLog((d>0?"➕":"➖")+" «"+s.nick+"» "+(d>0?"+":"")+d+" ОП");}
+async function addTitle(id,t){if(!t)return;const s=STATE.slaves.find(x=>x.id===id);await updateSlave(id,{titles:[...new Set([...s.titles,t])]});await pushLog("🎭 «"+s.nick+"» получил титул "+t);}
+async function delTitle(id,t){const s=STATE.slaves.find(x=>x.id===id);await updateSlave(id,{titles:s.titles.filter(x=>x!==t)});}
+async function addAch(id,a){if(!a)return;const s=STATE.slaves.find(x=>x.id===id);await updateSlave(id,{ach:[...new Set([...s.ach,a])]});await pushLog((ACH_GOOD.includes(a)?"🏅":"💢")+" «"+s.nick+"»: "+a);}
+async function delAch(id,a){const s=STATE.slaves.find(x=>x.id===id);await updateSlave(id,{ach:s.ach.filter(x=>x!==a)});}
+async function toggleYard(id,cur){await updateSlave(id,{yard:!cur});}
+async function doRename(id){const s=STATE.slaves.find(x=>x.id===id);const v=prompt("Новое имя для «"+s.nick+"»:",s.nick);if(v&&v.trim()){await updateSlave(id,{nick:v.trim()});await pushLog("✏️ «"+s.nick+"» -> «"+v.trim()+"»");}}
+async function doStatus(id){const s=STATE.slaves.find(x=>x.id===id);const v=prompt("Статус/приписка для «"+s.nick+"» (пусто — убрать):",s.status||"");if(v!==null){await updateSlave(id,{status:v.trim()});if(v.trim())await pushLog("✦ «"+s.nick+"» теперь "+v.trim());toast(v.trim()?"Статус задан":"Статус убран");}}
+async function setPin(id){
+  if(!STATE.isMistress)return;
+  const s=STATE.slaves.find(x=>x.id===id);
+  const v=prompt("PIN-код для входа «"+s.nick+"» в свой кабинет (4–8 цифр, пусто — убрать вход):","");
+  if(v===null)return;
+  const pin=v.trim();
+  if(pin && !/^\d{4,8}$/.test(pin)){toast("PIN — только 4–8 цифр");return;}
+  // пишем напрямую (Госпожа авторизована); пин не читается публичным select
+  const {error}=await db.from('slaves').update({pin:pin||null}).eq('id',id);
+  if(error){toast("Не вышло задать PIN");return;}
+  toast(pin?("PIN задан: "+pin):"Вход отключён");
+}
+function copySlaveLink(id){const s=STATE.slaves.find(x=>x.id===id);const link=location.origin+location.pathname+"?id="+id;const done=()=>{prompt("Личная ссылка для «"+s.nick+"» (скопируй и отправь рабу):",link);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(link).then(()=>{toast("Ссылка скопирована");done();}).catch(done);}else{done();}}
+async function doRemove(id){const s=STATE.slaves.find(x=>x.id===id);if(confirm("Изгнать «"+s.nick+"» из подвала?")){openId=null;await removeSlave(id,s.nick);}}
+
+// порядок сегментов на колесе (визуально), редкости из WHEEL_ODDS
+const WHEEL_ORDER=["common","rare","common","epic","common","legend","rare","mythic"];
+const SHARD_DUP=8;      // осколков за дубликат
+const SHARD_NOITEM=12;  // осколков, если по редкости нет предмета
+let wheelAngle=0, wheelBusy=false;
+function defaultPity(){return {sinceRare:0,sinceEpic:0,sinceLegend:0,total:0};}
+// чистый расчёт результата крутки с учётом pity (тестируемо отдельно)
+function rollRarity(pity){
+  const p={...defaultPity(),...(pity||{})};
+  p.total++; p.sinceRare++; p.sinceEpic++; p.sinceLegend++;
+  let rar;
+  // hard/soft pity сверху вниз
+  if(p.sinceLegend>=PITY.legend){rar="legend";}
+  else if(p.sinceEpic>=PITY.epic){rar="epic";}
+  else if(p.sinceRare>=PITY.rare){rar="rare";}
+  else{
+    const roll=Math.random()*100; let acc=0; rar="common";
+    for(const [r,ch] of WHEEL_ODDS){acc+=ch; if(roll<acc){rar=r;break;}}
+  }
+  // сброс счётчиков по полученной редкости и выше
+  if(rar==="rare"){p.sinceRare=0;}
+  if(rar==="epic"){p.sinceRare=0;p.sinceEpic=0;}
+  if(rar==="legend"){p.sinceRare=0;p.sinceEpic=0;p.sinceLegend=0;}
+  if(rar==="mythic"){p.sinceRare=0;p.sinceEpic=0;p.sinceLegend=0;}
+  return {rar,pity:p};
+}
+function renderWheel(m){
+  const seg=360/WHEEL_ORDER.length;
+  const tgt=STATE.isMistress?(STATE.slaves[0]):null;
+  m.innerHTML=`<div class="banner"><h1>КОЛЕСО СУДЬБЫ</h1><div class="s">Один оборот решает судьбу. Чем краснее — тем мифичнее.</div></div>
+    ${STATE.isMistress?`<div class="card corner"><div class="lbl">Кого одарить</div><select id="wtarget" onchange="renderWheelInfo()">${STATE.slaves.map(s=>`<option value="${s.id}">${esc(s.nick)}</option>`).join('')}</select></div>`:(()=>{
+      const me=STATE.slaves.find(x=>x.id===STATE.slaveId);
+      if(!me)return '<div class="card muted">Колесо вращает Госпожа.</div>';
+      const authed=STATE.slaveAuth===me.id;
+      const okRank=me.op>=150;
+      const usedToday=(me.game_cd&&me.game_cd.freespin)===new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Moscow'});
+      if(!authed)return '<div class="card muted">🔒 Войди по PIN — и если твой ранг от «Pedigree Hound», получишь бесплатную крутку дня.</div>';
+      if(!okRank)return '<div class="card muted">🎡 Бесплатная крутка откроется с ранга «Pedigree Hound» (150 ОП). Дорасти — Госпожа любит упорных.</div>';
+      return `<div class="card corner" style="text-align:center"><div class="muted" style="font-size:12px;margin-bottom:8px">Твоя бесплатная крутка дня${usedToday?' — уже использована, приходи завтра':''}.</div>${usedToday?'':`<button id="wspin" class="tapbtn btn gold" style="width:100%;padding:14px;font-family:Cinzel;letter-spacing:1px" onclick="freeSpin()">🎡 БЕСПЛАТНАЯ КРУТКА</button>`}</div>`;
+    })()}
+    <div id="winfo"></div>
+    <div style="position:relative;width:290px;height:290px;margin:10px auto">
+      <div style="position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;border-top:22px solid var(--gold);z-index:5;filter:drop-shadow(0 0 4px var(--gold))"></div>
+      <svg id="wheelsvg" width="290" height="290" viewBox="0 0 200 200" style="transition:transform 4.4s cubic-bezier(.15,.7,.18,1);filter:drop-shadow(0 0 16px rgba(212,175,55,.25))">
+        <circle cx="100" cy="100" r="98" fill="none" stroke="var(--goldDk)" stroke-width="3"/>
+        ${WHEEL_ORDER.map((rar,i)=>{const a0=(i*seg-90)*Math.PI/180,a1=((i+1)*seg-90)*Math.PI/180;const x0=100+94*Math.cos(a0),y0=100+94*Math.sin(a0),x1=100+94*Math.cos(a1),y1=100+94*Math.sin(a1);const mid=(a0+a1)/2,tx=100+58*Math.cos(mid),ty=100+58*Math.sin(mid);const col=RARITY[rar].c;return `<g><path d="M100,100 L${x0},${y0} A94,94 0 0,1 ${x1},${y1} Z" fill="${col}" stroke="#0a0809" stroke-width="1.2"/><text x="${tx}" y="${ty}" fill="#0a0809" font-size="5.6" font-weight="800" text-anchor="middle" font-family="Manrope" transform="rotate(${mid*180/Math.PI+90},${tx},${ty})">${RARITY[rar].n}</text></g>`;}).join('')}
+        <circle cx="100" cy="100" r="15" fill="var(--panel)" stroke="var(--gold)" stroke-width="2.5"/>
+        <text x="100" y="104" fill="var(--gold)" font-size="13" font-weight="900" text-anchor="middle" font-family="Cinzel">М</text>
+      </svg>
+    </div>
+    ${STATE.isMistress?`<button id="wspin" class="tapbtn btn gold" style="width:100%;padding:15px;font-size:16px;font-family:Cinzel;letter-spacing:1px" onclick="spinWheel()">КРУТИТЬ КОЛЕСО СУДЬБЫ</button>`:''}
+    <div id="wresult"></div>
+    <div class="sect" style="margin-top:18px">Шансы дропа</div>
+    <div class="card corner">${WHEEL_ODDS.map(([r,ch])=>`<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px"><span style="color:${RARITY[r].c};font-weight:700">${RARITY[r].n}</span><span class="muted">${ch}%</span></div>`).join('')}
+      <div class="muted" style="margin-top:8px;font-size:11px;border-top:1px solid var(--line);padding-top:8px">Гарант: Редкий ≤${PITY.rare} круток · Эпик ≤${PITY.epic} · Легендарка ≤${PITY.legend}. Дубль/нет предмета → осколки.</div>
+    </div>`;
+  renderWheelInfo();
+}
+function renderWheelInfo(){
+  const info=document.getElementById('winfo'); if(!info||!STATE.isMistress)return;
+  const s=STATE.slaves.find(x=>x.id===Number(document.getElementById('wtarget').value));
+  if(!s)return;
+  const p={...defaultPity(),...(s.pity||{})};
+  const toLegend=Math.max(0,PITY.legend-p.sinceLegend);
+  const toEpic=Math.max(0,PITY.epic-p.sinceEpic);
+  const toRare=Math.max(0,PITY.rare-p.sinceRare);
+  info.innerHTML=`<div class="countdown" style="margin-bottom:10px"><div class="t">${toLegend}</div><div class="l">круток до гаранта легендарки у «${esc(s.nick)}»</div></div>
+    <div class="row" style="justify-content:center;gap:14px;margin-bottom:8px">
+      <span class="pill">🔵 до Rare: ${toRare}</span>
+      <span class="pill">🟣 до Epic: ${toEpic}</span>
+      <span class="pill" style="background:rgba(212,175,55,.12)">💎 осколков: ${s.shards||0}</span>
+    </div>`;
+}
+function spinWheel(){
+  if(wheelBusy)return;
+  const sel=document.getElementById('wtarget'); if(!sel){toast("Выбери раба");return;}
+  const s=STATE.slaves.find(x=>x.id===Number(sel.value)); if(!s){toast("Раб не найден");return;}
+  wheelBusy=true; const btn=document.getElementById('wspin'); if(btn){btn.disabled=true;btn.style.opacity=.5;}
+  const {rar,pity}=rollRarity(s.pity);
+  // выбрать визуальный сегмент, совпадающий с выпавшей редкостью
+  const cand=WHEEL_ORDER.map((r,i)=>r===rar?i:-1).filter(i=>i>=0);
+  const idx=cand.length?cand[Math.floor(Math.random()*cand.length)]:0;
+  const seg=360/WHEEL_ORDER.length;
+  wheelAngle+=6*360+(360-idx*seg-seg/2);
+  const svg=document.getElementById('wheelsvg'); if(svg)svg.style.transform=`rotate(${wheelAngle}deg)`;
+  setTimeout(async()=>{
+    // какие предметы этой редкости раб ещё не имеет
+    const owned=new Set(s.inventory||[]);
+    const pool=GEAR.filter(g=>g.r===rar);
+    const fresh=pool.filter(g=>!owned.has(g.id));
+    let gotItem=null, shardGain=0, patch={pity};
+    if(fresh.length){
+      gotItem=fresh[Math.floor(Math.random()*fresh.length)];
+      patch.inventory=[...(s.inventory||[]),gotItem.id];
+    } else if(pool.length){
+      // дубликат — компенсация осколками
+      shardGain=SHARD_DUP*(rar==="legend"||rar==="mythic"?3:rar==="epic"?2:1);
+      patch.shards=(s.shards||0)+shardGain;
+    } else {
+      // по этой редкости вообще нет предметов в каталоге
+      shardGain=SHARD_NOITEM;
+      patch.shards=(s.shards||0)+shardGain;
+    }
+    await updateSlave(s.id,patch);
+    const col=RARITY[rar].c, isHigh=(rar==="legend"||rar==="mythic");
+    document.getElementById('wresult').innerHTML=`<div class="card corner" style="text-align:center;border-color:${col};animation:${isHigh?'glow 1.2s 3':'bloodGlow 1.5s'};margin-top:14px">
+      <div class="muted">${isHigh?'★ РЕДЧАЙШИЙ ДРОП ★':'ВЫПАЛО'} · <span style="color:${col};font-weight:800">${RARITY[rar].n}</span></div>
+      <div style="font-family:Cinzel;font-size:23px;font-weight:900;color:${col};margin-top:4px">${gotItem?esc(gotItem.n):'💎 +'+shardGain+' осколков'}</div>
+      ${gotItem?`<div class="muted" style="margin-top:4px">💪${gotItem.str} 🛡${gotItem.def} ⚡${gotItem.spd} → в инвентарь «${esc(s.nick)}»</div>`:`<div class="muted" style="margin-top:4px">Дубликат/нет нового предмета — осколки в копилку</div>`}
+    </div>`;
+    await pushLog("🎡 «"+s.nick+"» крутит колесо → "+(gotItem?("["+RARITY[rar].n+"] "+gotItem.n):("+"+shardGain+" осколков ["+RARITY[rar].n+"]")));
+    wheelBusy=false; if(btn){btn.disabled=false;btn.style.opacity=1;}
+    renderWheelInfo();
+  },4500);
+}
+
+// Бесплатная крутка раба: сервер решает редкость (с pity и лимитом 1/день), клиент крутит и кладёт лут
+async function freeSpin(){
+  if(wheelBusy)return;
+  const me=STATE.slaves.find(x=>x.id===STATE.slaveId);
+  if(!me||STATE.slaveAuth!==me.id)return;
+  wheelBusy=true;const btn=document.getElementById('wspin');if(btn){btn.disabled=true;btn.style.opacity=.5;}
+  const pin=mySlavePin();
+  const {data,error}=await db.rpc('slave_free_spin',{p_id:me.id,p_pin:pin});
+  if(error||!data||!data.ok){
+    wheelBusy=false;if(btn){btn.disabled=false;btn.style.opacity=1;}
+    const msg=data&&data.err==='done_today'?'Сегодня уже крутил — приходи завтра':data&&data.err==='low_rank'?'Нужен ранг от Pedigree Hound':data&&data.err==='bad_pin'?'Войди по PIN заново':'Не вышло крутить';
+    toast(msg);return;
+  }
+  const rar=data.rarity;
+  const cand=WHEEL_ORDER.map((r,i)=>r===rar?i:-1).filter(i=>i>=0);
+  const idx=cand.length?cand[Math.floor(Math.random()*cand.length)]:0;
+  const seg=360/WHEEL_ORDER.length;
+  wheelAngle+=6*360+(360-idx*seg-seg/2);
+  const svg=document.getElementById('wheelsvg');if(svg)svg.style.transform=`rotate(${wheelAngle}deg)`;
+  setTimeout(async()=>{
+    const owned=new Set(me.inventory||[]);
+    const pool=GEAR.filter(g=>g.r===rar);const fresh=pool.filter(g=>!owned.has(g.id));
+    let gotItem=null,shardGain=0,patch={};
+    if(fresh.length){gotItem=fresh[Math.floor(Math.random()*fresh.length)];patch.inventory=[...(me.inventory||[]),gotItem.id];}
+    else{shardGain=(rar==='legend'||rar==='mythic')?24:rar==='epic'?16:8;patch.shards=(me.shards||0)+shardGain;}
+    // запись результата идёт обычным update (pity уже двинут на сервере)
+    await db.from('slaves').update(patch).eq('id',me.id);
+    const col=RARITY[rar].c,isHigh=(rar==='legend'||rar==='mythic');
+    document.getElementById('wresult').innerHTML=`<div class="card corner" style="text-align:center;border-color:${col};animation:${isHigh?'glow 1.2s 3':'bloodGlow 1.5s'};margin-top:14px">
+      <div class="muted">${isHigh?'★ РЕДЧАЙШИЙ ДРОП ★':'ВЫПАЛО'} · <span style="color:${col};font-weight:800">${RARITY[rar].n}</span></div>
+      <div style="font-family:Cinzel;font-size:23px;font-weight:900;color:${col};margin-top:4px">${gotItem?esc(gotItem.n):'💎 +'+shardGain+' осколков'}</div></div>`;
+    await pushLog("🎡 «"+me.nick+"» крутит бесплатное колесо → "+(gotItem?("["+RARITY[rar].n+"] "+gotItem.n):("+"+shardGain+" осколков")));
+    wheelBusy=false;await fetchAll();
+  },4500);
+}
+
+// ===== КОМНАТА РАБА (логово: коллекция лута, медали, титулы) =====
+function renderRoom(m){
+  const meId = STATE.isMistress ? heroSel : STATE.slaveId;
+  const s = STATE.slaves.find(x=>x.id===meId) || STATE.slaves[0];
+  if(!s){m.innerHTML='<div class="banner"><h1>КОМНАТА</h1></div><div class="card muted">Нет перса.</div>';return;}
+  const inv=s.inventory||[];
+  const eqVals=Object.values(s.equipped||{});
+  const haveAch=new Set(s.ach||[]);
+  const gotAch=ACHIEVEMENTS.filter(a=>haveAch.has(a.id));
+  const sets=fullSets(s);
+  const rarials=["mythic","legend","epic","rare","common"];
+  // образ
+  let shownImg=s.avatar||"";for(const gid of eqVals){const g=gearById(gid);if(g&&g.pose)shownImg=g.pose;}
+  m.innerHTML=`<div class="banner"><h1>ЛОГОВО «${esc(s.nick).toUpperCase()}»</h1><div class="s">Твоя нора в подвале. Здесь — вся добыча, медали и слава.</div></div>
+    ${STATE.isMistress?`<div class="card corner"><div class="lbl">Чьё логово</div><select onchange="heroSel=Number(this.value);render()">${STATE.slaves.map(x=>`<option value="${x.id}" ${x.id===s.id?'selected':''}>${esc(x.nick)}</option>`).join('')}</select></div>`:''}
+
+    <!-- атмосферная сцена логова -->
+    <div class="corner" style="position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:${cosmeticDef('scene',getCos(s,'scene')).bg};padding:20px 14px;text-align:center;margin-bottom:14px">
+      <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,transparent,transparent 38px,rgba(0,0,0,.25) 38px,rgba(0,0,0,.25) 40px);opacity:.5"></div>
+      <div style="position:relative">
+        <div style="width:140px;height:200px;margin:0 auto;filter:drop-shadow(0 6px 14px rgba(200,16,46,.35))">${buildCharLayers(s)}</div>
+        <div style="font-family:Cinzel;font-weight:900;font-size:18px;color:var(--gold);margin-top:8px">${esc(s.nick)}</div>
+        <div style="font-size:11px;color:var(--goldLt)">${RANKS[s.rank].icon} ${RANKS[s.rank].n}${(()=>{const pr=prestigeOf(s.op);return pr?' · '+pr.icon:'';})()}</div>
+        ${s.status?`<div style="font-size:11px;color:#c9a;font-style:italic;margin-top:3px">«${esc(s.status)}»</div>`:''}
+        ${sets.length?`<div style="margin-top:8px">${sets.map(set=>`<span class="pill" style="background:rgba(212,175,55,.16);margin:0 2px">${set.id==='chainsaw'?'😈':'⚜'} ${esc(set.n)}</span>`).join('')}</div>`:''}
+      </div>
+    </div>
+
+    <!-- полки коллекции лута -->
+    <div class="sect">Сундук добычи · ${inv.length}/${GEAR.length}</div>
+    ${rarials.map(r=>{
+      const owned=GEAR.filter(g=>g.r===r && inv.includes(g.id));
+      const totalR=GEAR.filter(g=>g.r===r).length;
+      if(totalR===0)return '';
+      return `<div style="margin-bottom:10px">
+        <div style="font-size:10px;color:${RARITY[r].c};font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px">${RARITY[r].n} · ${owned.length}/${totalR}</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">${
+          GEAR.filter(g=>g.r===r).map(g=>{const has=inv.includes(g.id);const worn=eqVals.includes(g.id);
+            return `<div title="${esc(g.n)}" style="width:54px;height:54px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;border:1.5px solid ${has?RARITY[r].c:'var(--line)'};background:${has?'rgba(255,255,255,.04)':'rgba(0,0,0,.25)'};position:relative;${has?'':'filter:grayscale(1);opacity:.3'}">${SLOTS.find(sl=>sl[0]===g.slot)?SLOTS.find(sl=>sl[0]===g.slot)[2]:'❔'}${worn?'<span style="position:absolute;bottom:-2px;right:-2px;font-size:10px">✅</span>':''}</div>`;
+          }).join('')
+        }</div></div>`;
+    }).join('')}
+
+    <!-- стена медалей -->
+    <div class="sect">Стена славы · медали ${gotAch.length}/${ACHIEVEMENTS.length}</div>
+    ${gotAch.length?`<div style="display:flex;gap:8px;flex-wrap:wrap">${gotAch.map(a=>`<div title="${esc(a.n)}" style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+      <div style="width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;background:radial-gradient(circle,${ACH_TIER[a.tier].c}33,transparent);border:2px solid ${ACH_TIER[a.tier].c}">${a.tier==='gold'?'🥇':a.tier==='silver'?'🥈':a.tier==='secret'?'🔮':'🏅'}</div>
+      <div style="font-size:8px;color:var(--faint);text-align:center;line-height:1.1">${esc(a.n)}</div></div>`).join('')}</div>`
+      :'<div class="card muted">Пока пусто. Заслужи первую медаль — служи Госпоже.</div>'}
+
+    <!-- титулы -->
+    ${(s.titles||[]).length?`<div class="sect">Титулы</div><div style="display:flex;gap:6px;flex-wrap:wrap">${s.titles.map(t=>`<span class="pill" style="background:rgba(168,85,247,.15);color:#c9a0ff">${esc(t)}</span>`).join('')}</div>`:''}
+
+    <div class="sect">Трофейные стикеры</div>
+    <div class="card corner"><div class="muted" style="font-size:12px">Стикеры-награды за события (порка, кляп, раб недели) появятся здесь, когда Госпожа начнёт их выдавать. Собери коллекцию сезона → тайная медаль.</div></div>`;
+}
+
+// ===== МИНИ-ИГРЫ И ВИКТОРИНА (источник Очков Боли) =====
+// Викторина по лору подвала. a — индекс правильного ответа.
+const QUIZ=[
+  {q:"Как называется главная валюта подвала?",opts:["Очки Покорности","Золото","Кристаллы","Душа"],a:0},
+  {q:"Сколько ОП нужно для ранга «The Relic»?",opts:["600","1200","2500","5000"],a:2},
+  {q:"Что даёт ритуал «Слава Госпоже»?",opts:["+1 ОП","+2 ОП","+5 ОП","кляп"],a:1},
+  {q:"Самая редкая редкость лута?",opts:["Легендарный","Эпический","Мифический","Редкий"],a:2},
+  {q:"Через сколько круток гарант легендарки?",opts:["50","90","120","10"],a:1},
+  {q:"Что такое «кляп» в подвале?",opts:["Награда","Мут на 24ч","Титул","Сет"],a:1},
+  {q:"Сколько длится один сезон?",opts:["7 дней","14 дней","30 дней","год"],a:2},
+  {q:"Высшее достижение за 5000 порок?",opts:["Реликвия подвала","Жёсткое БДСМ","Гладиатор","Феникс"],a:1},
+  {q:"Кто крутит Колесо Судьбы?",opts:["Любой раб","Только Госпожа","Бот","Никто"],a:1},
+  {q:"Имя, под которым правит Госпожа?",opts:["Пауэр","Макима","Реза","Кобени"],a:1},
+  {q:"Что капает за streak 7 дней подряд?",opts:["+2","+5","+10","ничего"],a:2},
+  {q:"Финальный сет из 5 мифик-предметов?",opts:["Адский пёс","Любимчик","Дьявол-бензопила","Тень"],a:2}
+];
+let quizState=null;
+function renderGames(m){
+  const meId = STATE.isMistress ? null : STATE.slaveId;
+  const me = STATE.slaves.find(x=>x.id===meId);
+  const authed = STATE.slaveAuth && STATE.slaveAuth===meId;
+  m.innerHTML=`<div class="banner"><h1>ИГРЫ ПОДВАЛА</h1><div class="s">Развлекай Госпожу — копи Очки Боли. Их тратят в Магазине.</div></div>
+    ${STATE.isMistress?'<div class="card muted" style="margin-bottom:10px">Это кабинет рабов: тут они фармят Очки Боли в мини-играх. Ты можешь посмотреть, но играют — рабы под своим PIN.</div>':''}
+    ${!STATE.isMistress&&!authed?'<div class="card muted" style="margin-bottom:10px">🔒 Войди по PIN (кнопка вверху), чтобы играть и получать Очки Боли.</div>':''}
+    ${me?`<div class="countdown" style="margin-bottom:14px"><div class="t">🩸 ${me.pain||0}</div><div class="l">Очков Боли у «${esc(me.nick)}»</div></div>`:''}
+
+    <div class="sect">🎲 Кости Судьбы</div>
+    <div class="card corner"><div class="muted" style="font-size:12px;margin-bottom:10px">Бросай 2 кубика. Чем больше сумма — тем больше Очков Боли. Дубль — джекпот! Раз в 30 мин.</div>
+      <div id="diceArea" style="text-align:center;font-size:40px;margin:6px 0">🎲 🎲</div>
+      <button class="tapbtn btn gold" style="width:100%;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="playDice()">Бросить кости</button>
+      <div id="diceRes" style="text-align:center;margin-top:8px;min-height:18px"></div>
+    </div>
+
+    <div class="sect">🔮 Число Госпожи</div>
+    <div class="card corner"><div class="muted" style="font-size:12px;margin-bottom:10px">Госпожа загадала число 1–5. Угадай — большой куш Очков Боли. Раз в 30 мин.</div>
+      <div style="display:flex;gap:7px;justify-content:center;margin-bottom:8px">${[1,2,3,4,5].map(n=>`<button class="tapbtn btn" style="width:48px;height:48px;font-size:18px;font-family:Cinzel;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="playGuess(${n})">${n}</button>`).join('')}</div>
+      <div id="guessRes" style="text-align:center;min-height:18px"></div>
+    </div>
+
+    <div class="sect">🎰 Однорукая Госпожа</div>
+    <div class="card corner"><div class="muted" style="font-size:12px;margin-bottom:10px">Три барабана. Совпадение — Очки Боли. Три короны 👑 — джекпот! Раз в 30 мин.</div>
+      <div id="slotArea" style="text-align:center;font-size:46px;letter-spacing:8px;margin:6px 0;font-family:Cinzel">🎰 🎰 🎰</div>
+      <button class="tapbtn btn gold" style="width:100%;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="playSlots()">Крутить барабаны</button>
+      <div id="slotRes" style="text-align:center;margin-top:8px;min-height:18px"></div>
+    </div>
+
+    <div class="sect">🃏 21 Госпожи</div>
+    <div class="card corner" id="bjCard">
+      ${bjState?renderBjInner():`<div class="muted" style="font-size:12px;margin-bottom:10px">Набирай карты ближе к 21, но не перебери. 21 ровно — «Очко», максимум Боли! Раз в 40 мин.</div>
+      <button class="tapbtn btn gold" style="width:100%;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="startBj()">Сдать карты</button>`}
+    </div>
+
+    <div class="sect">🧠 Викторина: Лор Подвала</div>
+    <div class="card corner" id="quizCard">
+      ${quizState?renderQuizInner():`<div class="muted" style="font-size:12px;margin-bottom:10px">5 вопросов о подвале. За каждый верный — Очки Боли. Раз в 2 часа.</div>
+      <button class="tapbtn btn gold" style="width:100%;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="startQuiz()">Начать викторину</button>`}
+    </div>
+
+    <div class="sect">🃏 Жребий Госпожи</div>
+    <div class="card corner"><div class="muted" style="font-size:12px;margin-bottom:10px">Тяни карту судьбы. Госпожа решит твою участь: милость, дар или кара. Раз в день.</div>
+      <div id="fateArea" style="text-align:center;font-size:54px;margin:10px 0;font-family:Cinzel;min-height:60px;transition:transform .3s">🂠</div>
+      <button class="tapbtn btn gold" style="width:100%;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="playFate()">Тянуть жребий</button>
+      <div id="fateRes" style="text-align:center;margin-top:10px;min-height:18px"></div>
+    </div>`;
+}
+// --- Жребий Судьбы ---
+async function playFate(){
+  if(!(STATE.slaveAuth&&STATE.slaveAuth===STATE.slaveId))return;
+  const area=document.getElementById('fateArea');
+  const res=document.getElementById('fateRes');
+  const btn=event.target;
+  btn.disabled=true;
+  // анимация перемешивания
+  const shuffle=['🂠','🃏','🂡','🃁','🃑'];
+  let i=0;
+  const anim=setInterval(()=>{area.textContent=shuffle[i++%shuffle.length];area.style.transform=`rotate(${(i%2?6:-6)}deg)`;},90);
+  setTimeout(async ()=>{
+    clearInterval(anim);
+    area.style.transform='rotate(0deg)';
+    try{
+      const {data,error}=await db.rpc('slave_fate_draw',{p_id:STATE.slaveId,p_pin:mySlavePin()});
+      if(error||(data&&data.ok===false)){
+        const err=(data&&data.err)||'';
+        area.textContent='🂠';
+        if(err==='done_today'){res.innerHTML='<span style="color:#caa">🃏 Сегодня жребий уже брошен. Возвращайся завтра.</span>';}
+        else{res.innerHTML='<span style="color:#caa">Не вышло. Попробуй позже.</span>';}
+        btn.disabled=false;return;
+      }
+      // сервер решил исход — показываем его
+      const icons={'БЛАГОСЛОВЕНИЕ':'👑','МИЛОСТЬ':'🕊','ДАР':'🎁','ИСПЫТАНИЕ':'⚖️','ПУСТОТА':'🌑','КАРА':'🔥'};
+      area.textContent=icons[data.card]||'🂠';
+      let msg=`<b style="color:#f0d98a;font-size:16px">${data.card}</b><br>`;
+      if(data.kind==='op'&&data.amount>0)msg+=`Госпожа милостива: <b>+${data.amount} ОП</b>`;
+      else if(data.kind==='op'&&data.amount<0)msg+=`Злой жребий: <b>${data.amount} ОП</b>`;
+      else if(data.kind==='pain')msg+=`Тебе перепал дар: <b>+${data.amount} 🩸</b>`;
+      else if(data.card==='ИСПЫТАНИЕ')msg+=`Госпожа испытывает тебя. Докажи преданность ритуалом.`;
+      else msg+=`Судьба равнодушна сегодня.`;
+      res.innerHTML=msg;
+      await fetchAll();
+    }catch(e){res.innerHTML='<span style="color:#caa">Ошибка связи.</span>';area.textContent='🂠';btn.disabled=false;}
+  },1100);
+}
+// --- Кости ---
+async function playDice(){
+  if(!(STATE.slaveAuth&&STATE.slaveAuth===STATE.slaveId))return;
+  const d1=1+Math.floor(Math.random()*6),d2=1+Math.floor(Math.random()*6);
+  const faces=["⚀","⚁","⚂","⚃","⚄","⚅"];
+  document.getElementById('diceArea').textContent=faces[d1-1]+" "+faces[d2-1];
+  let gain=d1+d2; let jackpot=false;
+  if(d1===d2){gain*=3;jackpot=true;}
+  const res=await callPlay('dice',30,gain);
+  const el2=document.getElementById('diceRes');
+  if(res&&res.ok){el2.innerHTML=`<span style="color:var(--gold);font-weight:800">${jackpot?'🎰 ДУБЛЬ! ':''}+${res.gain} Очков Боли</span>`;setTimeout(fetchAll,600);}
+  else el2.innerHTML=`<span class="muted">${cdMsg(res)}</span>`;
+}
+// --- Угадай число ---
+async function playGuess(n){
+  if(!(STATE.slaveAuth&&STATE.slaveAuth===STATE.slaveId))return;
+  const secret=1+Math.floor(Math.random()*5);
+  const win=n===secret;
+  const res=await callPlay('guess',30,win?25:2);
+  const el2=document.getElementById('guessRes');
+  if(res&&res.ok){el2.innerHTML=win?`<span style="color:var(--gold);font-weight:800">🎯 Верно! Число ${secret}. +${res.gain} Очков Боли</span>`:`<span class="muted">Было ${secret}. Утешение +${res.gain} ОБ</span>`;setTimeout(fetchAll,600);}
+  else el2.innerHTML=`<span class="muted">${cdMsg(res)}</span>`;
+}
+// --- Слоты «Однорукая Госпожа» ---
+const SLOT_SYM=["🍒","🔔","🩸","💎","👑"];
+let slotBusy=false;
+async function playSlots(){
+  if(slotBusy||!(STATE.slaveAuth&&STATE.slaveAuth===STATE.slaveId))return;
+  slotBusy=true;
+  const area=document.getElementById('slotArea');
+  const fin=[0,1,2].map(()=>Math.floor(Math.random()*SLOT_SYM.length));
+  // анимация прокрутки
+  let ticks=0;const iv=setInterval(()=>{
+    area.textContent=[0,1,2].map(()=>SLOT_SYM[Math.floor(Math.random()*SLOT_SYM.length)]).join(' ');
+    if(++ticks>=14){clearInterval(iv);finishSlots(fin);}
+  },70);
+}
+async function finishSlots(fin){
+  const area=document.getElementById('slotArea');
+  area.textContent=fin.map(i=>SLOT_SYM[i]).join(' ');
+  // расчёт выигрыша
+  const [a,b,c]=fin;let gain=2,label="мимо";
+  if(a===b&&b===c){
+    if(SLOT_SYM[a]==='👑'){gain=60;label="👑 ДЖЕКПОТ!";}
+    else if(SLOT_SYM[a]==='💎'){gain=50;label="💎 Три алмаза!";}
+    else{gain=40;label="Три в ряд!";}
+  } else if(a===b||b===c||a===c){gain=12;label="Пара!";}
+  const res=await callPlay('slots',30,gain);
+  const el2=document.getElementById('slotRes');slotBusy=false;
+  if(res&&res.ok){el2.innerHTML=`<span style="color:var(--gold);font-weight:800">${label} +${res.gain} Очков Боли</span>`;setTimeout(fetchAll,600);}
+  else el2.innerHTML=`<span class="muted">${cdMsg(res)}</span>`;
+}
+// --- 21 Госпожи (блэкджек-лайт) ---
+let bjState=null; // {cards:[],total,done}
+function bjDeal(){const v=Math.min(11,2+Math.floor(Math.random()*10));return v;}
+function startBj(){
+  if(!(STATE.slaveAuth&&STATE.slaveAuth===STATE.slaveId))return;
+  bjState={cards:[],total:0,done:false};
+  bjHit(true);bjHit(true); // две стартовые
+  render();
+}
+function bjHit(silent){
+  if(!bjState||bjState.done)return;
+  const v=bjDeal();bjState.cards.push(v);bjState.total+=v;
+  if(bjState.total>21){bjState.done=true;bjFinish(0,"💥 Перебор! "+bjState.total);}
+  if(!silent)render(); else if(bjState.done)render();
+}
+function bjHitBtn(){bjHit(false);}
+function bjStand(){
+  if(!bjState||bjState.done)return;
+  bjState.done=true;
+  const t=bjState.total;let gain,label;
+  if(t===21){gain=60;label="🎯 ОЧКО! 21 ровно";}
+  else if(t>=18){gain=40;label="Сильная рука: "+t;}
+  else if(t>=15){gain=25;label="Неплохо: "+t;}
+  else{gain=10;label="Слабовато: "+t;}
+  bjFinish(gain,label);
+}
+async function bjFinish(gain,label){
+  render();
+  const res=await callPlay('blackjack',40,gain);
+  const el2=document.getElementById('bjRes');
+  if(el2){if(res&&res.ok){el2.innerHTML=`<span style="color:var(--gold);font-weight:800">${label} → +${res.gain} Очков Боли</span>`;setTimeout(fetchAll,700);}else el2.innerHTML=`<span class="muted">${cdMsg(res)}</span>`;}
+  setTimeout(()=>{bjState=null;},4500);
+}
+function renderBjInner(){
+  const st=bjState;
+  const cardsHtml=st.cards.map(v=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:52px;border-radius:7px;background:linear-gradient(180deg,#fff,#e8e2d0);color:#1a1208;font-family:Cinzel;font-weight:900;font-size:17px;margin:2px;box-shadow:0 3px 8px rgba(0,0,0,.5)">${v}</span>`).join('');
+  return `<div style="text-align:center">
+    <div style="margin-bottom:8px">${cardsHtml||'<span class="muted">—</span>'}</div>
+    <div style="font-family:Cinzel;font-size:22px;font-weight:900;color:${st.total>21?'var(--blood)':st.total===21?'var(--gold)':'var(--text)'};margin-bottom:10px">Сумма: ${st.total}</div>
+    ${st.done?`<div id="bjRes" style="min-height:18px"></div>`:`<div class="row" style="gap:8px;justify-content:center">
+      <button class="tapbtn btn" onclick="bjHitBtn()">Ещё карту</button>
+      <button class="tapbtn btn gold" onclick="bjStand()">Хватит</button>
+    </div><div id="bjRes" style="min-height:18px"></div>`}
+  </div>`;
+}
+// --- Викторина ---
+function startQuiz(){const pool=[...QUIZ].sort(()=>Math.random()-0.5).slice(0,5);quizState={qs:pool,i:0,correct:0,done:false};render();}
+function renderQuizInner(){
+  const st=quizState;
+  if(st.done)return `<div style="text-align:center"><div style="font-family:Cinzel;font-size:18px;color:var(--gold);font-weight:900">Викторина пройдена</div><div class="muted" style="margin:6px 0 10px">Верных ответов: ${st.correct} из ${st.qs.length}</div><div id="quizRes" style="min-height:18px"></div></div>`;
+  const q=st.qs[st.i];
+  return `<div style="font-size:11px;color:var(--faint);margin-bottom:6px">Вопрос ${st.i+1} / ${st.qs.length} · верных: ${st.correct}</div>
+    <div style="font-weight:700;margin-bottom:12px">${esc(q.q)}</div>
+    <div style="display:grid;gap:7px">${q.opts.map((o,idx)=>`<button class="tapbtn btn" style="text-align:left;padding:11px 13px" onclick="answerQuiz(${idx})">${esc(o)}</button>`).join('')}</div>`;
+}
+async function answerQuiz(idx){
+  const st=quizState;const q=st.qs[st.i];
+  if(idx===q.a)st.correct++;
+  st.i++;
+  if(st.i>=st.qs.length){
+    st.done=true;render();
+    const gain=st.correct*4; // 4 ОБ за верный ответ
+    const res=await callPlay('quiz',120,gain);
+    const el2=document.getElementById('quizRes');
+    if(el2){if(res&&res.ok){el2.innerHTML=`<span style="color:var(--gold);font-weight:800">+${res.gain} Очков Боли</span>`;setTimeout(fetchAll,700);}else el2.innerHTML=`<span class="muted">${cdMsg(res)}</span>`;}
+    setTimeout(()=>{quizState=null;},4000);
+  } else render();
+}
+// общий серверный вызов начисления (кулдаун+потолок на сервере)
+async function callPlay(game,cdMin,amount){
+  const pin=mySlavePin();
+  try{const {data,error}=await db.rpc('slave_play',{p_id:STATE.slaveId,p_pin:pin,p_game:game,p_cd_min:cdMin,p_amount:amount});if(error)return {ok:false,err:'rpc'};return data;}catch(e){return {ok:false,err:'net'};}
+}
+function cdMsg(res){if(res&&res.err==='cooldown'&&res.next){const mins=Math.max(1,Math.ceil((new Date(res.next)-Date.now())/60000));return '⏳ Ещё рано — приходи через ~'+mins+' мин.';}if(res&&res.err==='bad_pin')return 'Сессия истекла — войди по PIN снова.';return 'Не сейчас.';}
+
+// ===== МАГАЗИН (траты осколков и Очков Боли) =====
+const SHARD_PRICE={common:20,rare:60,epic:150,legend:400,mythic:1000};
+const PAIN_PRICE={common:40,rare:120,epic:300,legend:800,mythic:2000};
+const SPIN_SHARD_COST=50; // крутка колеса за осколки
+function renderShop(m){
+  const sel=document.getElementById('shoptarget');
+  const tgt=STATE.isMistress
+    ? (STATE.slaves.find(x=>x.id===Number(sel&&sel.value))||STATE.slaves[0])
+    : STATE.slaves.find(x=>x.id===STATE.slaveId);
+  const authed = STATE.slaveAuth && tgt && STATE.slaveAuth===tgt.id;
+  m.innerHTML=`<div class="banner"><h1>МАГАЗИН ПОДВАЛА</h1><div class="s">Трать Очки Боли за добычу с игр и арены. Осколки — компенсация с Колеса.</div></div>
+    ${STATE.isMistress?`<div class="card corner"><div class="lbl">Кому покупаем (за осколки — дар Госпожи)</div><select id="shoptarget" onchange="render()">${STATE.slaves.map(s=>`<option value="${s.id}" ${tgt&&s.id===tgt.id?'selected':''}>${esc(s.nick)}</option>`).join('')}</select></div>`:''}
+    ${!tgt?'<div class="card muted">Нет раба.</div>':`
+    ${!STATE.isMistress&&!authed?'<div class="card muted" style="margin-bottom:10px">🔒 Войди по PIN, чтобы покупать за свои Очки Боли.</div>':''}
+    <div class="row" style="justify-content:center;gap:12px;margin-bottom:14px">
+      <div class="countdown" style="margin:0;flex:1"><div class="t">🩸 ${tgt.pain||0}</div><div class="l">Очков Боли</div></div>
+      <div class="countdown" style="margin:0;flex:1"><div class="t">💎 ${tgt.shards||0}</div><div class="l">осколков</div></div>
+    </div>
+    <div class="card corner" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-weight:800">🎡 Крутка Колеса</div><div class="muted" style="font-size:11px">Шанс на любой дроп по обычным правилам</div></div>
+      ${STATE.isMistress?`<button class="tapbtn btn sm gold" style="${(tgt.shards||0)<SPIN_SHARD_COST?'opacity:.45':''}" ${(tgt.shards||0)<SPIN_SHARD_COST?'disabled':''} onclick="spinWithShards(${tgt.id})">💎 ${SPIN_SHARD_COST}</button>`:`<span class="pill">💎 ${SPIN_SHARD_COST}</span>`}
+    </div></div>
+    <div class="sect">Купить предмет</div>
+    <div class="muted" style="font-size:11px;margin-bottom:8px">🩸 — раб платит сам Очками Боли · 💎 — дарит Госпожа за осколки. Уже добытое не показывается.</div>
+    ${["common","rare","epic","legend","mythic"].map(r=>{
+      const owned=new Set(tgt.inventory||[]);
+      const list=GEAR.filter(g=>g.r===r && !owned.has(g.id));
+      if(!list.length)return '';
+      return `<div style="margin-bottom:4px"><div style="font-size:11px;color:${RARITY[r].c};font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px">${RARITY[r].n} · 🩸${PAIN_PRICE[r]} / 💎${SHARD_PRICE[r]}</div>
+        <div class="inv-grid">${list.map(g=>{
+          const canPain=(tgt.pain||0)>=PAIN_PRICE[r], canShard=(tgt.shards||0)>=SHARD_PRICE[r];
+          const col=RARITY[r].c;
+          const glowClass={mythic:'rglow-myth',legend:'rglow-leg',epic:'rglow-epic',rare:'rglow-rare'}[r]||'';
+          return `<div class="gear-card corner ${glowClass}" style="margin:0;border:1.5px solid ${col}40">
+          <div class="gear-img-w">
+            ${g.img?`<img src="${esc(g.img)}" alt="${esc(g.n)}"/>`:`<span class="gear-slot-ic">${(SLOTS.find(sl=>sl[0]===g.slot)||['','','❔'])[2]}</span>`}
+          </div>
+          <div style="font-size:8.5px;color:${col};text-transform:uppercase;font-weight:800;letter-spacing:.6px;margin-bottom:2px">${RARITY[r].n}</div>
+          <div style="font-weight:800;font-size:12.5px;line-height:1.2;margin-bottom:4px">${esc(g.n)}</div>
+          ${g.desc?`<div style="font-size:10px;color:var(--faint);font-style:italic;margin-bottom:5px;line-height:1.3">${esc(g.desc)}</div>`:''}
+          <div class="stat-mini" style="margin-bottom:9px">
+            <span style="color:#ff6b6b">💪${g.str>=0?'+':''}${g.str}</span>
+            <span style="color:#5b8def">🛡${g.def>=0?'+':''}${g.def}</span>
+            <span style="color:#46c98a">⚡${g.spd>=0?'+':''}${g.spd}</span>
+          </div>
+          ${authed?`<button class="tapbtn btn sm gold" style="width:100%;margin-bottom:5px;${canPain?'':'opacity:.5'}" ${canPain?'':'disabled'} onclick="buyWithPain('${g.id}','${r}')">🩸 ${PAIN_PRICE[r]}</button>`:''}
+          ${STATE.isMistress?`<button class="tapbtn btn sm" style="width:100%;${canShard?'':'opacity:.5'}" ${canShard?'':'disabled'} onclick="buyWithShards(${tgt.id},'${g.id}','${r}')">💎 ${SHARD_PRICE[r]}</button>`:(authed?'':`<span class="pill" style="width:100%;justify-content:center">🩸 ${PAIN_PRICE[r]}</span>`)}
+        </div>`;}).join('')}</div></div>`;
+    }).join('')||'<div class="card muted" style="text-align:center;padding:22px">Весь шмот этой витрины уже добыт 🏆</div>'}`}`;
+}
+async function buyWithPain(gid,r){
+  if(!(STATE.slaveAuth&&STATE.slaveAuth===STATE.slaveId))return;
+  const g=gearById(gid);const pin=mySlavePin();
+  const {data,error}=await db.rpc('slave_buy_pain',{p_id:STATE.slaveId,p_pin:pin,p_gear:gid,p_price:PAIN_PRICE[r]});
+  if(error||!data||!data.ok){toast(data&&data.err==='no_pain'?'Мало Очков Боли':data&&data.err==='owned'?'Уже есть':'Не вышло купить');return;}
+  toast("Куплено: "+g.n+" 🩸");await fetchAll();
+}
+async function buyWithShards(id,gid,r){
+  if(!STATE.isMistress)return;
+  const s=STATE.slaves.find(x=>x.id===id);const price=SHARD_PRICE[r];
+  if((s.shards||0)<price){toast("Мало осколков");return;}
+  const g=gearById(gid);
+  await updateSlave(id,{shards:(s.shards||0)-price,inventory:[...new Set([...(s.inventory||[]),gid])]});
+  await pushLog("🛒 «"+s.nick+"» куплено за осколки: ["+RARITY[r].n+"] "+g.n);
+  toast("Куплено: "+g.n);
+}
+async function spinWithShards(id){
+  if(!STATE.isMistress)return;
+  const s=STATE.slaves.find(x=>x.id===id);
+  if((s.shards||0)<SPIN_SHARD_COST){toast("Мало осколков");return;}
+  // списываем осколки и крутим обычное колесо на этого раба
+  await updateSlave(id,{shards:(s.shards||0)-SPIN_SHARD_COST});
+  STATE.tab="wheel"; render();
+  setTimeout(()=>{const sel=document.getElementById('wtarget');if(sel){sel.value=id;renderWheelInfo();}spinWheel();},300);
+}
+
+// ===== НАГРАДЫ / ДОСТИЖЕНИЯ + трофейная стена =====
+function renderAch(m){
+  const tgt=STATE.isMistress
+    ? (STATE.slaves.find(x=>x.id===Number((document.getElementById('achtarget')||{}).value))||STATE.slaves[0])
+    : STATE.slaves.find(x=>x.id===STATE.slaveId);
+  const have=new Set(tgt?tgt.ach||[]:[]);
+  const tiers=["bronze","silver","gold","secret"];
+  const total=ACHIEVEMENTS.length, got=ACHIEVEMENTS.filter(a=>have.has(a.id)).length;
+  const tierIcon={bronze:"🥉",silver:"🥈",gold:"🥇",secret:"🔮"};
+  m.innerHTML=`<div class="banner"><h1>ЗАЛ НАГРАД</h1><div class="s">Вехи на пути раба. Бронза, серебро, золото — и тайны Госпожи.</div></div>
+    ${STATE.isMistress?`<div class="card corner"><div class="lbl">Чьи награды</div><select id="achtarget" onchange="render()">${STATE.slaves.map(s=>`<option value="${s.id}" ${tgt&&s.id===tgt.id?'selected':''}>${esc(s.nick)}</option>`).join('')}</select></div>`:''}
+    ${!tgt?'<div class="card muted">Нет раба.</div>':`
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div class="card corner" style="margin:0;text-align:center;padding:14px 8px">
+        <div style="font-family:Cinzel;font-size:26px;font-weight:900;color:var(--gold)">${got}</div>
+        <div style="font-size:9px;color:var(--faint);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Открыто</div>
+        <div class="ach-pb" style="margin-top:10px"><div style="width:${Math.round(got/total*100)}%;background:linear-gradient(90deg,var(--bloodDk),var(--gold))"></div></div>
+      </div>
+      <div class="card corner" style="margin:0;text-align:center;padding:14px 8px">
+        <div style="font-family:Cinzel;font-size:26px;font-weight:900;color:var(--blood)">${total-got}</div>
+        <div style="font-size:9px;color:var(--faint);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Осталось</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:8px">${got}/${total}</div>
+      </div>
+    </div>
+
+    ${tiers.map(t=>{
+      const list=ACHIEVEMENTS.filter(a=>a.tier===t);
+      const gotT=list.filter(a=>have.has(a.id)).length;
+      return `<div class="sect" style="color:${ACH_TIER[t].c}">${tierIcon[t]} ${ACH_TIER[t].n} · ${gotT}/${list.length}</div>
+      <div class="ach-grid">${list.map(a=>{
+        const ok=have.has(a.id);
+        const secret=a.tier==='secret'&&!ok;
+        const pr=(!secret&&!ok&&a.prog&&tgt)?a.prog(tgt):null;
+        const pct=pr?Math.round(pr.cur/pr.max*100):0;
+        return `<div class="ach-card" style="margin:0;background:${ok?`linear-gradient(135deg,${ACH_TIER[t].c}18,var(--panel))`:'linear-gradient(180deg,var(--panel2),var(--panel))'};border-color:${ok?ACH_TIER[t].c:'var(--line)'}">
+          <div class="ach-icon" style="background:${ok?ACH_TIER[t].c+'22':'rgba(255,255,255,.04)'};border-color:${ok?ACH_TIER[t].c:'var(--line)'}">
+            ${ok?(a.icon||'🏆'):(secret?'❓':(a.icon||'🔒'))}
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:800;font-size:13px;${ok?'color:var(--text)':'color:var(--dim)'}">${secret?'???':esc(a.n)}</div>
+            <div style="font-size:10.5px;color:var(--faint);margin-top:2px;line-height:1.3">${secret?'Условие скрыто Госпожой':esc(a.desc)}</div>
+            ${!secret&&a.reward?`<div style="font-size:10px;color:${ok?'var(--good)':'var(--goldDk)'};margin-top:3px;font-weight:700">${ok?'✓ ':''}${esc(a.reward)}</div>`:''}
+            ${pr&&!ok?`<div class="ach-pb" style="margin-top:7px"><div style="width:${pct}%;background:linear-gradient(90deg,${ACH_TIER[t].c}88,${ACH_TIER[t].c})"></div></div>
+            <div style="font-size:9px;color:var(--faint);margin-top:3px">${pr.cur} / ${pr.max}</div>`:''}
+            ${STATE.isMistress?`<button class="tapbtn btn sm ${ok?'ghost':'gold'}" style="margin-top:7px;padding:5px 10px;font-size:11px" onclick="toggleAch(${tgt.id},'${a.id}',${ok})">${ok?'Снять':'Выдать'}</button>`:''}
+          </div>
+        </div>`;
+      }).join('')}</div>`;
+    }).join('')}
+
+    <div class="sect">Трофейная стена · стикеры</div>
+    <div class="card corner"><div class="muted" style="font-size:12px">Стикеры-трофеи появятся здесь, когда Госпожа их выдаст через бота или вручную. Собери все за сезон → скрытая ачивка.</div></div>`}`;
+}
+async function toggleAch(id,aid,have){
+  if(!STATE.isMistress)return;
+  const s=STATE.slaves.find(x=>x.id===id);const a=achById(aid);
+  if(have){
+    await updateSlave(id,{ach:(s.ach||[]).filter(x=>x!==aid)});
+    await pushLog("➖ У «"+s.nick+"» снято достижение «"+a.n+"»");
+  } else {
+    const bonus=a.op||0;
+    await updateSlave(id,{ach:[...new Set([...(s.ach||[]),aid])],op:(s.op||0)+bonus});
+    await pushLog("🏆 «"+s.nick+"» получил «"+a.n+"»"+(bonus?" (+"+bonus+" ОП)":""));
+  }
+}
+
+let fight=null;
+function renderArena(m){
+  const s=STATE.slaves;
+  if(s.length<2){m.innerHTML='<div class="banner"><h1>АРЕНА</h1></div><div class="card muted">Нужно минимум 2 раба для боя.</div>';return;}
+  if(!fight)fight={a:s[0].id,b:s[1].id,hpA:100,hpB:100,turn:"A",on:false,over:null,feed:[],guardA:false,guardB:false,rageA:0,rageB:0,bleedA:0,bleedB:0};
+  const sa=s.find(x=>x.id===fight.a),sb=s.find(x=>x.id===fight.b);
+  // право вести бой: Госпожа всегда; раб — если дерётся своим авторизованным персом как боец A
+  const slaveFighter = STATE.slaveAuth && STATE.slaveAuth===fight.a;
+  const canFight = STATE.isMistress || slaveFighter;
+  // если раб авторизован — по умолчанию ставим его бойцом A
+  if(!STATE.isMistress && STATE.slaveAuth && fight.a!==STATE.slaveAuth && !fight.on){fight.a=STATE.slaveAuth;if(fight.b===fight.a)fight.b=s.find(x=>x.id!==fight.a).id;}
+  m.innerHTML=`<div class="banner"><h1>АРЕНА ПОДВАЛА</h1><div class="s">Бой проклятых. Победа +15 ОП, +10 Очков Боли и слава.</div></div>
+    ${!STATE.isMistress&&!STATE.slaveAuth?'<div class="card muted" style="margin-bottom:8px">🔒 Войди по PIN (кнопка вверху), чтобы драться своим персом. Сейчас — только просмотр.</div>':''}
+    <div class="row" style="flex-wrap:nowrap;margin-bottom:6px">
+      <div style="flex:1"><div class="lbl">Боец 1${slaveFighter?' (ты)':''}</div><select ${slaveFighter?'disabled':''} onchange="setF('a',this.value)">${s.map(x=>`<option value="${x.id}" ${x.id===fight.a?'selected':''}>${esc(x.nick)}</option>`).join('')}</select></div>
+      <div style="flex:1"><div class="lbl">Соперник</div><select onchange="setF('b',this.value)">${s.map(x=>`<option value="${x.id}" ${x.id===fight.b?'selected':''}>${esc(x.nick)}</option>`).join('')}</select></div>
+    </div>
+    ${fight.a===fight.b?'<div class="card muted">Выбери двух разных.</div>':`
+    <div class="row" style="margin:14px 0;flex-wrap:nowrap">
+      ${fc(sa,fight.hpA,fight.turn==="A"&&fight.on,'var(--blood)',fight.guardA,fight.rageA,fight.bleedA)}
+      <div style="align-self:center;color:var(--gold);font-family:Cinzel;font-weight:900;font-size:20px">VS</div>
+      ${fc(sb,fight.hpB,fight.turn==="B"&&fight.on,'var(--violet)',fight.guardB,fight.rageB,fight.bleedB)}
+    </div>
+    ${!fight.on&&!fight.over?(canFight?`<button class="tapbtn btn gold" style="width:100%;padding:15px;font-size:16px;font-family:Cinzel;letter-spacing:1px" onclick="startFight()">НАЧАТЬ БОЙ</button>`:'<div class="card muted">Бой ведёт Госпожа или сам боец (после входа по PIN).</div>'):''}
+    ${fight.on&&!fight.over?`<div style="text-align:center;color:var(--faint);font-size:12px;margin-bottom:8px">${fight.turn==="A"?"Твой ход":"Соперник готовит удар…"}</div>
+      ${fight.rageA>=RAGE_MAX&&fight.turn==="A"?`<button class="tapbtn btn" style="width:100%;background:${ULT.color};padding:13px;margin-bottom:8px;font-family:Cinzel;letter-spacing:1px;animation:bloodGlow 1.2s infinite" onclick="useUlt()"><div style="font-weight:900;font-size:15px">🔥 ${ULT.name}</div><div style="font-size:10px;opacity:.9">${ULT.desc}</div></button>`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${MOVES.map((mv,i)=>`<button class="tapbtn btn" style="background:${mv.color};padding:11px 9px;text-align:left;opacity:${fight.turn==="A"?1:.4}" ${fight.turn!=="A"?'disabled':''} onclick="useMove(${i})"><div style="font-weight:800;font-size:13px">${mv.name}</div><div style="font-size:10px;opacity:.85">${mv.desc}</div></button>`).join('')}</div>`:''}
+    ${fight.over?`<div class="card gilded corner" style="text-align:center;animation:glow 1.5s 2"><div class="muted">♛ ПОБЕДИТЕЛЬ ♛</div><div style="font-family:Cinzel;font-size:24px;font-weight:900;color:var(--gold);margin:6px 0">${esc((fight.over==="A"?sa:sb).nick)}</div>${canFight?`<button class="tapbtn btn" onclick="startFight()">Реванш</button>`:''}</div>`:''}
+    ${fight.feed.length?`<div class="sect">Хроника боя</div>${fight.feed.slice(0,8).map((f,i)=>`<div style="font-size:12px;color:${i===0?'var(--text)':'var(--dim)'};padding:5px 0;border-bottom:1px solid var(--line)">${esc(f)}</div>`).join('')}`:''}`}`;
+}
+function fc(s,hp,active,color,guard,rage,bleed){rage=rage||0;bleed=bleed||0;return `<div class="corner" style="position:relative;flex:1;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid ${active?color:'var(--line)'};border-radius:13px;padding:13px;box-shadow:${active?'0 0 18px '+color+'66':'none'};animation:${active?'float 2s infinite':'none'}">
+  <div style="position:absolute;top:8px;right:10px;font-size:14px;display:flex;gap:3px">${guard?'<span title="в защите">🛡</span>':''}${bleed>0?`<span title="кровотечение ${bleed} х">🩸</span>`:''}${rage>=RAGE_MAX?'<span title="ярость полна">🔥</span>':''}</div>
+  <div style="font-size:14px;font-weight:800;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(s.nick)}</div>
+  <div class="hpwrap"><div style="width:${hp}%;height:100%;background:${hp>40?'linear-gradient(90deg,'+color+',var(--gold))':'var(--bloodDk)'};transition:width .4s"></div></div>
+  <div style="font-size:11px;color:var(--dim);margin-top:3px;text-align:right">${hp} HP</div>
+  <div style="height:6px;background:var(--void);border-radius:3px;margin-top:5px;overflow:hidden;border:1px solid #00000060"><div style="width:${Math.min(100,rage)}%;height:100%;background:linear-gradient(90deg,#ff8c42,#ffd24a);transition:width .3s"></div></div>
+  <div style="font-size:9px;color:${rage>=RAGE_MAX?'#ffd24a':'var(--faint)'};margin-top:2px;text-align:right;font-weight:${rage>=RAGE_MAX?'800':'400'}">🔥 ${Math.min(100,Math.round(rage))}${rage>=RAGE_MAX?' ГОТОВ':''}</div></div>`;}
+function setF(k,v){fight[k]=Number(v);fight.hpA=100;fight.hpB=100;fight.on=false;fight.over=null;fight.feed=[];fight.guardA=false;fight.guardB=false;fight.rageA=0;fight.rageB=0;fight.bleedA=0;fight.bleedB=0;render();}
+function startFight(){fight.hpA=100;fight.hpB=100;fight.turn="A";fight.over=null;fight.feed=[];fight.guardA=false;fight.guardB=false;fight.rageA=0;fight.rageB=0;fight.bleedA=0;fight.bleedB=0;fight.on=true;render();}
+// расчёт одного применения приёма: возвращает {dmg, heal, miss, crit, guard}
+function applyMove(mv,att,def,defGuard){
+  if(mv.kind==="guard")return {dmg:0,heal:0,miss:false,crit:false,guard:true};
+  // ультимейт: не промахивается, игнорирует блок, вешает кровотечение.
+  // множитель урезан (≤1.25), чтобы ульта была сильным финишером, а не гарантированным ваншотом
+  if(mv.kind==="ult"){
+    let base=Math.floor(Math.random()*(mv.dmg[1]-mv.dmg[0]+1))+mv.dmg[0];
+    let ratio=Math.min(1.25, att.str/Math.max(8,def.def*0.7));
+    let real=Math.round(base*ratio);
+    return {dmg:Math.max(22,real),heal:0,miss:false,crit:true,guard:false,bleed:BLEED_TURNS};
+  }
+  // уклонение защищающегося — по скорости
+  const dodge=Math.min(0.35, Math.max(0, (def.spd-att.spd)/300));
+  if(Math.random()<dodge)return {dmg:0,heal:0,miss:true,crit:false,guard:false,dodged:true};
+  if(Math.random()>mv.acc)return {dmg:0,heal:0,miss:true,crit:false,guard:false};
+  const hits=mv.kind==="fast"?2:1;
+  let total=0,crit=false;
+  for(let h=0;h<hits;h++){
+    let base=Math.floor(Math.random()*(mv.dmg[1]-mv.dmg[0]+1))+mv.dmg[0];
+    let ratio=att.str/Math.max(8,def.def*0.7);
+    if(mv.kind==="fast")ratio*=(1+att.spd/200); // быстрый бьёт по скорости
+    const c=Math.random()<(0.10+att.spd/400);
+    if(c)crit=true;
+    let real=Math.round(base*ratio*(c?1.6:1));
+    total+=Math.max(2,real);
+  }
+  if(defGuard)total=Math.round(total*0.5); // блок врага режет урон
+  let heal=0;
+  if(mv.kind==="drain")heal=Math.round(total*0.4);
+  return {dmg:total,heal,miss:false,crit,guard:false};
+}
+// кровотечение в начале хода бойца. Возвращает true, если боец пал.
+function tickBleed(side){
+  const bk=side==='A'?'bleedA':'bleedB', hk=side==='A'?'hpA':'hpB';
+  if((fight[bk]||0)<=0)return false;
+  fight[hk]=Math.max(0,fight[hk]-BLEED_DMG);fight[bk]--;
+  const s=STATE.slaves;const who=side==='A'?s.find(x=>x.id===fight.a):s.find(x=>x.id===fight.b);
+  fight.feed.unshift("🩸 "+who.nick+" истекает кровью: −"+BLEED_DMG+" HP"+(fight[bk]>0?" (ещё "+fight[bk]+")":""));
+  return fight[hk]<=0;
+}
+// начисление ярости после удара
+function gainRage(attSide,dealt){
+  const ak=attSide==='A'?'rageA':'rageB', dk=attSide==='A'?'rageB':'rageA';
+  if(dealt>0){fight[ak]=Math.min(RAGE_MAX,(fight[ak]||0)+RAGE_HIT);fight[dk]=Math.min(RAGE_MAX,(fight[dk]||0)+RAGE_TAKE);}
+}
+// ход игрока (боец A) обычным приёмом
+function useMove(i){
+  if(!fight.on||fight.over||fight.turn!=="A")return;
+  if(tickBleed('A')){render();return endFight("B");}
+  const mv=MOVES[i];const s=STATE.slaves;
+  const sa=s.find(x=>x.id===fight.a),sb=s.find(x=>x.id===fight.b);
+  const pa=powerOf(sa),pb=powerOf(sb);
+  const r=applyMove(mv,pa,pb,fight.guardB);
+  fight.guardB=false; // блок врага израсходован
+  if(r.guard){fight.guardA=true;fight.feed.unshift("🛡 "+sa.nick+": "+mv.name+" — готов отразить удар");}
+  else if(r.miss){fight.feed.unshift("💨 "+sa.nick+": "+mv.name+(r.dodged?" — "+sb.nick+" уклонился!":" — мимо!"));}
+  else{fight.hpB=Math.max(0,fight.hpB-r.dmg);if(r.heal)fight.hpA=Math.min(100,fight.hpA+r.heal);
+    gainRage('A',r.dmg);
+    fight.feed.unshift("⚔ "+sa.nick+": "+mv.name+" → "+r.dmg+(r.crit?" 💥КРИТ!":"")+(r.heal?" (+"+r.heal+" HP)":""));}
+  if(fight.hpB<=0)return endFight("A");
+  fight.turn="B";render();
+  setTimeout(()=>aiTurn(),900);
+}
+// ультимейт игрока
+function useUlt(){
+  if(!fight.on||fight.over||fight.turn!=="A"||fight.rageA<RAGE_MAX)return;
+  if(tickBleed('A')){render();return endFight("B");}
+  const s=STATE.slaves;const sa=s.find(x=>x.id===fight.a),sb=s.find(x=>x.id===fight.b);
+  const pa=powerOf(sa),pb=powerOf(sb);
+  const r=applyMove(ULT,pa,pb,false);
+  fight.rageA=0;fight.guardB=false;
+  fight.hpB=Math.max(0,fight.hpB-r.dmg);fight.bleedB=Math.max(fight.bleedB||0,r.bleed||0);
+  fight.feed.unshift("🔥💥 "+sa.nick+": ГНЕВ ГОСПОЖИ → "+r.dmg+" урона + кровотечение!");
+  if(fight.hpB<=0)return endFight("A");
+  fight.turn="B";render();
+  setTimeout(()=>aiTurn(),900);
+}
+// ИИ соперника: юзает ульту при полной ярости, добивает, защищается на низком HP
+function aiTurn(){
+  if(!fight.on||fight.over)return;
+  if(tickBleed('B')){render();return endFight("A");}
+  const s=STATE.slaves;const sa=s.find(x=>x.id===fight.a),sb=s.find(x=>x.id===fight.b);
+  const pa=powerOf(sa),pb=powerOf(sb);
+  // ИИ: полная ярость → ультимейт
+  if((fight.rageB||0)>=RAGE_MAX){
+    const r=applyMove(ULT,pb,pa,false);
+    fight.rageB=0;fight.guardA=false;
+    fight.hpA=Math.max(0,fight.hpA-r.dmg);fight.bleedA=Math.max(fight.bleedA||0,r.bleed||0);
+    fight.feed.unshift("🔥💥 "+sb.nick+": ГНЕВ ГОСПОЖИ → "+r.dmg+" урона + кровотечение!");
+    if(fight.hpA<=0)return endFight("B");
+    fight.turn="A";render();return;
+  }
+  let idx;
+  const heavyIdx=MOVES.findIndex(m=>m.kind==="heavy");
+  const guardIdx=MOVES.findIndex(m=>m.kind==="guard");
+  const drainIdx=MOVES.findIndex(m=>m.kind==="drain");
+  const normalIdx=MOVES.findIndex(m=>m.kind==="normal");
+  if(fight.hpA<=28 && Math.random()<0.7)idx=heavyIdx;            // враг при смерти — добиваем тяжёлым
+  else if(fight.hpB<=30 && Math.random()<0.5)idx=fight.hpB<22?drainIdx:guardIdx; // сами на грани — лечимся/блок
+  else idx=[normalIdx,heavyIdx,drainIdx][Math.floor(Math.random()*3)];
+  if(idx<0)idx=normalIdx;
+  const mv=MOVES[idx];
+  const r=applyMove(mv,pb,pa,fight.guardA);
+  fight.guardA=false;
+  if(r.guard){fight.guardB=true;fight.feed.unshift("🛡 "+sb.nick+": "+mv.name+" — встал в защиту");}
+  else if(r.miss){fight.feed.unshift("💨 "+sb.nick+": "+mv.name+(r.dodged?" — "+sa.nick+" уклонился!":" — мимо!"));}
+  else{fight.hpA=Math.max(0,fight.hpA-r.dmg);if(r.heal)fight.hpB=Math.min(100,fight.hpB+r.heal);
+    gainRage('B',r.dmg);
+    fight.feed.unshift("⚔ "+sb.nick+": "+mv.name+" → "+r.dmg+(r.crit?" 💥КРИТ!":"")+(r.heal?" (+"+r.heal+" HP)":""));}
+  if(fight.hpA<=0)return endFight("B");
+  fight.turn="A";render();
+}
+async function endFight(w){
+  fight.over=w;fight.on=false;
+  const s=STATE.slaves;
+  const win=w==="A"?s.find(x=>x.id===fight.a):s.find(x=>x.id===fight.b);
+  const los=w==="A"?s.find(x=>x.id===fight.b):s.find(x=>x.id===fight.a);
+  render();
+  // награды начисляет либо Госпожа, либо авторизованный раб-боец (если дрался своим персом)
+  const canAward = STATE.isMistress || (STATE.slaveAuth && (STATE.slaveAuth===win.id || STATE.slaveAuth===los.id));
+  if(!canAward)return;
+  if(STATE.isMistress){
+    await updateSlave(win.id,{op:win.op+15,wins:(win.wins||0)+1});
+    await updateSlave(los.id,{op:Math.max(0,los.op-5),losses:(los.losses||0)+1});
+    await giveXp(win.id,40);
+    // Очки Боли победителю — и валюта, и слава
+    await db.from('slaves').update({pain:(win.pain||0)+10}).eq('id',win.id);
+    await pushLog("⚔️ Арена: «"+win.nick+"» сокрушил «"+los.nick+"» (+15 ОП, +10 ОБ, +40 опыта)");
+  } else {
+    // раб дрался сам — награду проводим через защищённый серверный вызов
+    const pin=mySlavePin();
+    await db.rpc('slave_arena_result',{p_win:win.id,p_los:los.id,p_pin:pin});
+    await fetchAll();
+  }
+}
+
+const CHARGES=["опоздал к Госпоже","флудил не по делу","слил клан-катку","дерзил без Дня Бунта","не сделал поклон","выпрашивал внимание","ливнул с ивента","забыл, кто тут хозяйка"];
+const VERDICTS=["10 ударов плетью по жопе","кляп на сутки","сутки на холодном полу","публичная порка при всех","разжалование на ранг вниз","неделя статуса «Личный коврик»","Долговая Яма до отыгрыша"];
+let court={charge:null,verdict:null};
+function renderCourt(m){
+  m.innerHTML=`<div class="banner"><h1>СУД ПОДВАЛА</h1><div class="s">Барабан судьбы крутится. Молоток — у Госпожи.</div></div>
+    <div class="card corner"><div class="lbl">Обвиняемый</div>
+    <select id="acc" style="margin-bottom:13px">${STATE.slaves.map(s=>`<option value="${s.id}">${esc(s.nick)}</option>`).join('')}</select>
+    ${STATE.isMistress?`<button class="tapbtn btn gold" style="width:100%;font-family:Cinzel;letter-spacing:1px" onclick="judge()">ВЫНЕСТИ ДЕЛО</button>`:'<div class="muted">Судит только Госпожа.</div>'}</div>
+    <div id="verdict">${court.charge?verdictCard():''}</div>`;
+}
+function verdictCard(){return `<div class="card corner" style="border-color:var(--bloodDk)"><div class="muted">ОБВИНЕНИЕ</div><div style="font-size:16px;margin:4px 0 12px;font-style:italic">«${court.charge}»</div><div class="muted">ПРИГОВОР ГОСПОЖИ</div><div style="font-family:Cinzel;font-size:18px;font-weight:900;color:var(--blood);margin:4px 0">${court.verdict}</div></div>`;}
+function judge(){let i=0;const iv=setInterval(()=>{court.charge=CHARGES[Math.floor(Math.random()*CHARGES.length)];court.verdict=VERDICTS[Math.floor(Math.random()*VERDICTS.length)];document.getElementById('verdict').innerHTML=verdictCard();if(++i>13){clearInterval(iv);const s=STATE.slaves.find(x=>x.id===Number(document.getElementById('acc').value));pushLog("⚖️ Суд: «"+s.nick+"» — "+court.verdict);}},85);}
+
+function renderCup(m){
+  const r=STATE.slaves;const bracket=r.slice(0,Math.min(8,r.length));
+  const tgt=STATE.isMistress
+    ? (STATE.slaves.find(x=>x.id===Number((document.getElementById('seasontarget')||{}).value))||STATE.slaves[0])
+    : STATE.slaves.find(x=>x.id===STATE.slaveId)||STATE.slaves[0];
+  const os=tgt?tgt.season_op||0:0;
+  const tier=seasonTier(os);
+  const intoTier=os-tier*SEASON_PER_TIER;
+  const tierPct=tier>=SEASON_MAX_TIER?100:Math.round((intoTier/SEASON_PER_TIER)*100);
+  const rewardTiers=Object.keys(SEASON_REWARDS).map(Number).sort((a,b)=>a-b);
+  m.innerHTML=`<div class="banner"><h1>ПУТЬ ПОКОРНОСТИ</h1><div class="s">Сезонный пропуск. Сила — в бесплатной дорожке, статус — в дорожке Госпожи.</div></div>
+    <div class="countdown"><div class="t">${daysLeft()} ДНЕЙ</div><div class="l">до финала сезона · сброс таблицы и награды топам</div></div>
+
+    ${STATE.isMistress?`<div class="card corner"><div class="lbl">Чей пропуск</div><select id="seasontarget" onchange="render()">${STATE.slaves.map(s=>`<option value="${s.id}" ${tgt&&s.id===tgt.id?'selected':''}>${esc(s.nick)}</option>`).join('')}</select></div>`:''}
+    ${tgt?`<div class="card corner" style="margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-family:Cinzel;font-weight:900;font-size:18px;color:var(--gold)">ТИР ${tier} / ${SEASON_MAX_TIER}</div><div class="muted" style="font-size:12px">ОС: ${os} · до тира ${Math.min(tier+1,SEASON_MAX_TIER)}: ${tier>=SEASON_MAX_TIER?'—':(SEASON_PER_TIER-intoTier)}</div></div>
+      <div class="prog" style="margin-top:8px"><div style="width:${tierPct}%"></div></div>
+      ${STATE.isMistress?`<div class="row" style="margin-top:10px;gap:6px"><button class="tapbtn btn sm" onclick="addSeasonOP(${tgt.id},25)">+25 ОС</button><button class="tapbtn btn sm" onclick="addSeasonOP(${tgt.id},50)">+50 ОС</button><button class="tapbtn btn sm ghost" onclick="addSeasonOP(${tgt.id},-25)">−25 ОС</button></div>`:''}
+    </div>
+
+    <div class="sect">Награды пропуска</div>
+    <div style="display:grid;gap:7px">
+      <div class="row" style="font-size:9px;color:var(--faint);text-transform:uppercase;letter-spacing:.5px;padding:0 4px"><span style="width:42px">Тир</span><span style="flex:1">🆓 Бесплатно</span><span style="flex:1">👑 Дорожка Госпожи</span></div>
+      ${rewardTiers.map(t=>{const got=tier>=t;const rw=SEASON_REWARDS[t];const claimed=(tgt.season_claimed||[]).includes(t);return `<div class="card corner ${got?'':'locked'}" style="margin:0;padding:9px 11px;border-color:${got?(claimed?'var(--good)':'var(--gold)'):'var(--line)'};display:flex;align-items:center;gap:8px">
+        <span style="width:34px;text-align:center;font-family:Cinzel;font-weight:900;color:${got?'var(--gold)':'var(--faint)'}">${got?'✓':t}</span>
+        <span style="flex:1;font-size:12px">${esc(rw.free)}</span>
+        <span style="flex:1;font-size:12px;color:var(--goldLt)">${esc(rw.gold)}</span>
+        ${STATE.isMistress&&got?(claimed?'<span class="pill" style="background:rgba(70,201,138,.15);color:var(--good)">выдано</span>':`<button class="tapbtn btn sm gold" onclick="claimSeasonTier(${tgt.id},${t})">Выдать</button>`):''}
+      </div>`;}).join('')}
+    </div>
+
+    <div class="sect">Недельные задания · квесты Госпожи</div>
+    <div class="card corner">${WEEKLY_QUESTS.map(q=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line);font-size:13px"><span>${esc(q.n)}</span><span class="pill">+${q.os} ОС</span></div>`).join('')}<div class="muted" style="font-size:11px;margin-top:8px">Выполнение отмечает Госпожа кнопками +ОС выше. Пропуск двигается игрой, а не доплатой.</div></div>`:''}
+
+    <div class="sect">Таблица покорности</div>
+    ${[...r].sort((a,b)=>b.op-a.op).map((s,i)=>`<div class="card ${i===0?'gilded':''} corner" style="padding:11px 13px;display:flex;align-items:center;gap:12px">
+      <div style="width:30px;text-align:center;font-family:Cinzel;font-weight:900;font-size:17px;color:${i===0?'var(--gold)':i<3?'var(--goldLt)':'var(--faint)'}">${i===0?'♛':i+1}</div>
+      <div style="flex:1"><div style="font-weight:800">${esc(s.nick)}</div><div style="font-size:11px;color:var(--gold)">${RANKS[s.rank].icon} ${RANKS[s.rank].n}</div></div>
+      <div style="font-family:Cinzel;font-weight:900;color:${i===0?'var(--gold)':'var(--blood)'}">${s.op}</div></div>`).join('')}
+    ${bracket.length>=2?`<div class="sect">Плей-офф · топ-${bracket.length}</div><div class="card corner">${Array.from({length:Math.ceil(bracket.length/2)}).map((_,i)=>{const p1=bracket[i*2],p2=bracket[i*2+1];return `<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)"><span style="flex:1;font-size:13px">${esc(p1?p1.nick:'—')}</span><span class="muted">vs</span><span style="flex:1;font-size:13px;text-align:right">${esc(p2?p2.nick:'(проход)')}</span></div>`;}).join('')}</div><div style="text-align:center;margin-top:14px;font-family:Cinzel;color:var(--gold);font-weight:700;letter-spacing:1px">♛ Победитель → Дьявол Сезона</div>`:''}`;
+}
+async function addSeasonOP(id,delta){
+  if(!STATE.isMistress)return;
+  const s=STATE.slaves.find(x=>x.id===id);
+  const cur=s.season_op||0;
+  const next=Math.max(0,Math.min(SEASON_MAX_TIER*SEASON_PER_TIER,cur+delta));
+  const tBefore=seasonTier(cur),tAfter=seasonTier(next);
+  await db.from('slaves').update({season_op:next}).eq('id',id);
+  if(tAfter>tBefore){await pushLog("🎟 «"+s.nick+"» поднялся до тира "+tAfter+" сезонного пропуска!");}
+  await fetchAll();
+}
+// выдача наград тира: переводит текст награды в реальный эффект (ОП/шмот/крутка/осколки)
+async function claimSeasonTier(id,tier){
+  if(!STATE.isMistress)return;
+  const s=STATE.slaves.find(x=>x.id===id);
+  if((s.season_claimed||[]).includes(tier)){toast("Уже выдано");return;}
+  const rw=SEASON_REWARDS[tier];
+  const patch={season_claimed:[...new Set([...(s.season_claimed||[]),tier])]};
+  let op=s.op||0, log=[];
+  // бесплатная дорожка
+  const free=rw.free;
+  if(/\+(\d+) ОП/.test(free)){op+=parseInt(free.match(/\+(\d+) ОП/)[1]);log.push(free);}
+  else if(/Rare-шмот/.test(free)){const g=pickGearByRarity('rare',s);if(g){patch.inventory=[...new Set([...(s.inventory||[]),g.id])];log.push("Rare: "+g.n);}}
+  else if(/Epic-шмот/.test(free)){const g=pickGearByRarity('epic',s);if(g){patch.inventory=[...new Set([...(s.inventory||[]),g.id])];log.push("Epic: "+g.n);}}
+  else if(/Legendary-шмот/.test(free)){const g=pickGearByRarity('legend',s);if(g){patch.inventory=[...new Set([...(patch.inventory||s.inventory||[]),g.id])];log.push("Legendary: "+g.n);}}
+  else if(/крутка колеса/.test(free)){patch.shards=(s.shards||0)+SPIN_SHARD_COST;log.push("осколки на крутку (+"+SPIN_SHARD_COST+")");}
+  // дорожка Госпожи (косметика — фиксируем в лог, мифик-предмет на финале выдаём реально)
+  const gold=rw.gold;
+  if(/Mythic/.test(gold)){const g=pickGearByRarity('mythic',s);if(g){patch.inventory=[...new Set([...(patch.inventory||s.inventory||[]),g.id])];log.push("👑 Mythic: "+g.n);}else log.push("👑 "+gold);}
+  else log.push("👑 "+gold);
+  if(op!==s.op){patch.op=op;}
+  await updateSlave(id,patch);
+  await pushLog("🎟 «"+s.nick+"» забрал награды тира "+tier+": "+log.join(", "));
+  toast("Награды тира "+tier+" выданы");
+}
+function pickGearByRarity(r,s){const owned=new Set(s.inventory||[]);const pool=GEAR.filter(g=>g.r===r&&!owned.has(g.id));return pool.length?pool[Math.floor(Math.random()*pool.length)]:null;}
+
+function openLogin(){
+  const m=el(`<div class="modal" onclick="if(event.target===this)this.remove()"><div class="box corner">
+    <div style="font-family:Cinzel;font-size:20px;font-weight:900;color:var(--gold);margin-bottom:4px">Вход Госпожи</div>
+    <div class="muted" style="margin-bottom:16px">Лишь ты держишь ключи от подвала.</div>
+    <div class="lbl">Почта</div><input id="lemail" type="email" style="margin-bottom:10px"/>
+    <div class="lbl">Пароль</div><input id="lpass" type="password" style="margin-bottom:18px"/>
+    <button class="tapbtn btn gold" style="width:100%;font-family:Cinzel;letter-spacing:1px" onclick="doLogin(this)">Войти на трон</button>
+  </div></div>`);
+  document.body.appendChild(m);
+}
+async function doLogin(btn){const email=document.getElementById('lemail').value.trim();const pass=document.getElementById('lpass').value;btn.textContent="Входим…";btn.disabled=true;const ok=await login(email,pass);if(ok){document.querySelector('.modal').remove();render();toast("Добро пожаловать на трон, Госпожа");}else{btn.textContent="Войти на трон";btn.disabled=false;}}
+
+function openSlaveLogin(){
+  const me=STATE.slaves.find(x=>x.id===STATE.slaveId);
+  const m=el(`<div class="modal" onclick="if(event.target===this)this.remove()"><div class="box corner">
+    <div style="font-family:Cinzel;font-size:20px;font-weight:900;color:var(--gold);margin-bottom:4px">Вход в кабинет</div>
+    <div class="muted" style="margin-bottom:16px">Перс: <b style="color:var(--gold)">${me?esc(me.nick):'—'}</b>. Введи PIN, что выдала Госпожа.</div>
+    <div class="lbl">PIN-код</div><input id="spin" type="password" inputmode="numeric" style="margin-bottom:18px" placeholder="••••"/>
+    <button class="tapbtn btn gold" style="width:100%;font-family:Cinzel;letter-spacing:1px" onclick="doSlaveLogin(this)">Войти</button>
+  </div></div>`);
+  document.body.appendChild(m);
+  setTimeout(()=>{const i=document.getElementById('spin');if(i)i.focus();},50);
+}
+async function doSlaveLogin(btn){
+  const pin=document.getElementById('spin').value.trim();
+  if(!pin){toast("Введи PIN");return;}
+  btn.textContent="Проверяем…";btn.disabled=true;
+  const {data,error}=await db.rpc('slave_check_pin',{p_id:STATE.slaveId,p_pin:pin});
+  if(error||!data){btn.textContent="Войти";btn.disabled=false;toast("Неверный PIN");return;}
+  STATE.slaveAuth=STATE.slaveId;
+  try{sessionStorage.setItem('slavePin_'+STATE.slaveId,pin);}catch(e){}
+  document.querySelector('.modal').remove();render();toast("Кабинет открыт 🔓");
+}
+function slaveLogout(){STATE.slaveAuth=null;try{sessionStorage.removeItem('slavePin_'+STATE.slaveId);}catch(e){}render();toast("Вышел из кабинета");}
+// текущий pin раба для серверных вызовов (мини-игры)
+function mySlavePin(){try{return sessionStorage.getItem('slavePin_'+STATE.slaveId)||'';}catch(e){return '';}}
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function escq(s){return String(s).replace(/'/g,"\\'");}
+
+// ===== ВХОДНОЙ ЭКРАН 18+ / СОГЛАСИЕ =====
+function ageGatePassed(){try{return localStorage.getItem('podval_age_ok')==='1';}catch(e){return false;}}
+function showAgeGate(){
+  document.body.innerHTML=`<div id="agegate" style="position:fixed;inset:0;z-index:9999;background:radial-gradient(1200px 600px at 50% -10%, #2a0a0e 0%, #0a0809 60%);display:flex;align-items:center;justify-content:center;padding:22px;font-family:Manrope,system-ui,sans-serif">
+    <div style="max-width:460px;width:100%;background:linear-gradient(180deg,#16080a,#0d0809);border:1px solid #5a1620;border-radius:18px;padding:30px 26px;box-shadow:0 0 50px rgba(200,16,46,.18);text-align:center">
+      <div style="font-size:30px;margin-bottom:4px">⛓️</div>
+      <div style="font-family:Cinzel,serif;font-size:26px;font-weight:900;color:#d4af37;letter-spacing:1px;margin-bottom:2px">ПОДВАЛ МАКИМЫ</div>
+      <div style="color:#c8102e;font-weight:800;font-size:13px;letter-spacing:3px;margin-bottom:18px">18+ · ВСЁ ПО ФАНУ</div>
+      <div style="color:#c9b9bb;font-size:13.5px;line-height:1.65;text-align:left;background:rgba(255,255,255,.03);border:1px solid #3a1418;border-radius:12px;padding:15px 16px;margin-bottom:20px">
+        Это <b style="color:#e8d8aa">пародийная ролевая игра для взрослых</b> по мотивам аниме- и гача-эстетики. Тут юмор, абсурд, ранги, дуэли и лут.<br><br>
+        Заходя, ты подтверждаешь, что:<br>
+        • тебе <b style="color:#e8d8aa">исполнилось 18 лет</b>;<br>
+        • участие <b style="color:#e8d8aa">добровольное</b>, всё по обоюдному согласию и «по фану»;<br>
+        • перестать играть можно в любой момент — просто перестань заходить;<br>
+        • это <b style="color:#e8d8aa">игра и юмор</b>, а не принуждение кого-либо к чему-либо.
+      </div>
+      <button onclick="passAgeGate()" style="width:100%;padding:15px;background:linear-gradient(180deg,#d4af37,#b8902a);color:#1a1405;border:none;border-radius:11px;font-family:Cinzel,serif;font-weight:900;font-size:15px;letter-spacing:1px;cursor:pointer;margin-bottom:10px">МНЕ ЕСТЬ 18 — ВОЙТИ</button>
+      <button onclick="window.location.href='https://www.google.com'" style="width:100%;padding:12px;background:transparent;color:#8a6a6e;border:1px solid #3a1418;border-radius:11px;font-size:13px;cursor:pointer">Мне нет 18 — выйти</button>
+      <div style="color:#5a4a4c;font-size:10px;margin-top:14px">Слово Госпожи — закон. Но только для тех, кто пришёл по своей воле.</div>
+    </div>
+  </div>`;
+}
+function passAgeGate(){try{localStorage.setItem('podval_age_ok','1');}catch(e){}location.reload();}
+
+(async function(){
+  if(SUPABASE_URL.includes("VSTAV")){app.innerHTML='<div style="padding:30px;color:var(--dim)">Вставь ключи Supabase.</div>';return;}
+  initTelegram();
+  if(!ageGatePassed()){showAgeGate();return;}
+  await checkSession();await tryTokenLogin();await fetchAll();
+  // в Telegram: открыть перса того, кто зашёл (по tg_id). Действия — по PIN (безопасно).
+  if(STATE.inTelegram && STATE.tgUserId && !STATE.slaveId && !STATE.isMistress){
+    const me=STATE.slaves.find(s=>String(s.tg_id)===String(STATE.tgUserId));
+    if(me){STATE.slaveId=me.id;STATE.tab="hero";render();}
+    else{toast("Твой Telegram не привязан к персу — напиши боту /вход");}
+  }
+})();
+</script>
+</body>
+</html>
