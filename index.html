@@ -149,49 +149,43 @@
   @keyframes layerIn{from{opacity:0;transform:translateY(7px) scale(.975)}to{opacity:1;transform:none}}
   @keyframes floorPulse{0%,100%{opacity:.45;transform:translateX(-50%) scaleX(1)}50%{opacity:.7;transform:translateX(-50%) scaleX(1.12)}}
   @keyframes equipFlash{0%{opacity:0}18%{opacity:.85}100%{opacity:0}}
-  /* живой свет: персонаж «дышит» свечением (без transform — иначе ломается screen-вырез фона) */
-  @keyframes charLight{0%,100%{filter:brightness(1.0) contrast(1.16) drop-shadow(0 8px 16px rgba(0,0,0,.8))}50%{filter:brightness(1.14) contrast(1.19) drop-shadow(0 11px 20px rgba(0,0,0,.85))}}
+  @keyframes charFlex{0%{transform:scale(1)}24%{transform:scale(1.05) rotate(-1.4deg)}55%{transform:scale(.985) rotate(.9deg)}100%{transform:scale(1)}}
+  @keyframes charLight{0%,100%{filter:brightness(1.0) contrast(1.16) drop-shadow(0 8px 16px rgba(0,0,0,.8))}50%{filter:brightness(1.16) contrast(1.2) drop-shadow(0 11px 20px rgba(0,0,0,.85))}}
   .char-stage{position:relative;width:100%;height:100%}
-  .char-anim{position:absolute;inset:0;cursor:pointer}
+  .char-anim{position:absolute;inset:0;transform-origin:50% 92%;cursor:pointer;will-change:transform;
+    animation:charBreathe 4.2s ease-in-out infinite, charSway 7.5s ease-in-out infinite}
+  .char-anim.flex{animation:charFlex .6s cubic-bezier(.34,1.56,.64,1)}
   .char-anim img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;
     filter:brightness(1.05) contrast(1.16) drop-shadow(0 8px 16px rgba(0,0,0,.8))}
   .char-anim img.lyr{animation:layerIn .5s cubic-bezier(.22,1,.36,1) both, charLight 4.6s ease-in-out infinite}
-  .char-flash{position:absolute;inset:0;z-index:9;pointer-events:none;border-radius:18px;
-    background:radial-gradient(ellipse at 50% 55%,rgba(212,175,55,.55),transparent 60%);animation:equipFlash .7s ease-out forwards}
-  @media (prefers-reduced-motion:reduce){.char-anim img.lyr,.char-spark{animation:none}}
+  .char-flash{position:absolute;inset:0;z-index:9;pointer-events:none;border-radius:18px;mix-blend-mode:screen;
+    background:radial-gradient(ellipse at 50% 55%,rgba(212,175,55,.6),transparent 60%);animation:equipFlash .7s ease-out forwards}
+  @media (prefers-reduced-motion:reduce){.char-anim,.char-anim.flex,.char-anim img.lyr,.char-spark{animation:none}}
 
   /* ===== искры редкого шмота ===== */
   @keyframes sparkUp{0%{transform:translateY(0) scale(.5);opacity:0}18%{opacity:1}100%{transform:translateY(-86px) scale(1);opacity:0}}
   .char-spark{position:absolute;bottom:15%;width:5px;height:5px;border-radius:50%;z-index:4;pointer-events:none;
     box-shadow:0 0 6px currentColor;animation:sparkUp linear infinite}
-  @media (prefers-reduced-motion:reduce){.parallax-host .char-stage{transition:none}}
-
-  /* ===== ПРЕМИУМ-СЦЕНА ГЕРОЯ: глубина, свет, туман, подиум ===== */
-  .hero3d-av{border-radius:16px;overflow:hidden;isolation:isolate;box-shadow:inset 0 0 0 1px rgba(212,175,55,.12)}
-  .sc{position:absolute;pointer-events:none;z-index:0}
-  .sc-wall{inset:0;background:
-    radial-gradient(120% 78% at 50% -8%,rgba(150,28,52,.40),transparent 56%),
-    radial-gradient(100% 60% at 50% 108%,rgba(212,175,55,.12),transparent 60%),
-    linear-gradient(180deg,#23101a 0%,#180b12 46%,#0a0608 100%)}
-  .sc-ray{left:50%;top:-8%;width:80%;height:92%;transform:translateX(-50%);z-index:0;filter:blur(3px);
-    background:radial-gradient(48% 60% at 50% 0%,rgba(255,228,168,.26),rgba(255,196,120,.07) 46%,transparent 70%);
-    clip-path:polygon(40% 0,60% 0,88% 100%,12% 100%);animation:rayBreath 6s ease-in-out infinite}
-  @keyframes rayBreath{0%,100%{opacity:.5}50%{opacity:.95}}
-  .sc-fog{inset:0;opacity:.55;mix-blend-mode:screen;
-    background:radial-gradient(38% 26% at 28% 72%,rgba(180,120,210,.16),transparent 60%),
-               radial-gradient(40% 28% at 74% 60%,rgba(120,60,170,.14),transparent 60%);
-    animation:fogDrift 15s ease-in-out infinite}
-  @keyframes fogDrift{0%,100%{transform:translateX(-4%)}50%{transform:translateX(4%)}}
-  .sc-floor{left:50%;bottom:0;width:124%;height:42%;transform:translateX(-50%);opacity:.75;
-    -webkit-mask-image:linear-gradient(180deg,transparent,#000 58%);mask-image:linear-gradient(180deg,transparent,#000 58%);
-    background:radial-gradient(60% 130% at 50% 100%,rgba(212,175,55,.28),transparent 60%),
-      repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(212,175,55,.13) 24px,rgba(212,175,55,.13) 25px)}
-  .sc-podium{left:50%;bottom:5%;width:64%;height:13%;transform:translateX(-50%);border-radius:50%;filter:blur(6px);
-    background:radial-gradient(ellipse,rgba(212,175,55,.55),rgba(200,16,46,.18) 56%,transparent 72%);animation:floorPulse 4.2s ease-in-out infinite}
-  .sc-core{left:50%;top:45%;width:62%;height:88%;transform:translate(-50%,-50%);border-radius:50%;
-    background:radial-gradient(ellipse,#000 0%,#000 33%,rgba(0,0,0,.72) 55%,transparent 78%)}
-  .sc-veil{inset:0;z-index:7;border-radius:16px;box-shadow:inset 0 0 64px rgba(0,0,0,.72),inset 0 0 16px rgba(0,0,0,.5)}
-  .sc-ember2{position:absolute;bottom:7%;width:3px;height:3px;border-radius:50%;background:#ffcf6b;z-index:6;box-shadow:0 0 6px #ffb347;animation:embers 4.6s linear infinite}
+  /* ===== СЦЕНА ГЕРОЯ: световые слои ПОВЕРХ чёрного (screen — на чёрном всегда видно) ===== */
+  .hero3d-av{border-radius:16px;overflow:hidden;position:relative;
+    background:radial-gradient(120% 85% at 50% 0%,#2a1019,#160b11 52%,#080507);
+    box-shadow:inset 0 0 0 1px rgba(212,175,55,.16),inset 0 0 70px rgba(0,0,0,.55)}
+  .sc{position:absolute;pointer-events:none;mix-blend-mode:screen}
+  .sc-ray{left:50%;top:-6%;width:72%;height:98%;transform:translateX(-50%);z-index:5;filter:blur(4px);
+    background:radial-gradient(46% 58% at 50% 0%,rgba(255,228,165,.34),rgba(255,190,110,.09) 46%,transparent 70%);
+    clip-path:polygon(42% 0,58% 0,88% 100%,12% 100%);animation:rayBreath 6s ease-in-out infinite}
+  @keyframes rayBreath{0%,100%{opacity:.45}50%{opacity:.9}}
+  .sc-amb{inset:0;z-index:5;opacity:.75;animation:fogDrift 16s ease-in-out infinite;
+    background:radial-gradient(32% 30% at 14% 38%,rgba(205,40,72,.26),transparent 60%),
+               radial-gradient(32% 30% at 86% 46%,rgba(150,72,205,.22),transparent 60%)}
+  @keyframes fogDrift{0%,100%{transform:translateX(-3%)}50%{transform:translateX(3%)}}
+  .sc-floor{left:50%;bottom:-3%;width:88%;height:32%;transform:translateX(-50%);z-index:5;filter:blur(3px);
+    background:radial-gradient(60% 82% at 50% 100%,rgba(212,175,55,.55),rgba(200,16,46,.18) 50%,transparent 70%);
+    animation:floorGlow 4.2s ease-in-out infinite}
+  @keyframes floorGlow{0%,100%{opacity:.65}50%{opacity:1}}
+  .sc-ember2{position:absolute;bottom:6%;width:3px;height:3px;border-radius:50%;background:#ffcf6b;z-index:6;mix-blend-mode:screen;box-shadow:0 0 7px #ffb347;animation:embers 4.6s linear infinite}
+  .sc-frame{position:absolute;inset:0;z-index:7;border-radius:16px;pointer-events:none;
+    box-shadow:inset 0 0 46px rgba(120,10,24,.45),inset 0 0 0 1px rgba(212,175,55,.2)}
 
   /* ===== ЗРЕЛИЩНЫЕ ЭФФЕКТЫ ДЕЙСТВИЙ ===== */
   @keyframes ringBurst{0%{opacity:.9;transform:translateX(-50%) scale(.2)}100%{opacity:0;transform:translateX(-50%) scale(1.55)}}
@@ -200,7 +194,7 @@
   .burst-p{position:absolute;left:50%;top:46%;width:6px;height:6px;border-radius:50%;z-index:8;pointer-events:none;box-shadow:0 0 8px currentColor;animation:burstP .6s cubic-bezier(.22,1,.36,1) forwards}
   @keyframes cardShake{0%,100%{transform:translateX(0)}18%{transform:translateX(-5px)}38%{transform:translateX(5px)}58%{transform:translateX(-3px)}78%{transform:translateX(3px)}}
   .hero3d.shake{animation:cardShake .42s ease-in-out}
-  @media (prefers-reduced-motion:reduce){.sc-ray,.sc-fog,.sc-podium,.sc-ember2,.hero3d.shake{animation:none}}
+  @media (prefers-reduced-motion:reduce){.sc-ray,.sc-amb,.sc-floor,.sc-ember2,.hero3d.shake{animation:none}}
 
   /* ===== ОБЩИЙ ЛОСК UI: глубина карточек, кнопки, активная вкладка ===== */
   .card,.stat{box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 4px 14px rgba(0,0,0,.35)}
@@ -527,9 +521,10 @@ function buildCharLayers(s){
 const RAR_ORDER=['common','rare','epic','legend','mythic'];
 function topEquipRarity(s){let best=-1;Object.values(s.equipped||{}).forEach(id=>{const g=gearById(id);if(g){const i=RAR_ORDER.indexOf(g.r);if(i>best)best=i;}});return best>=2?RAR_ORDER[best]:null;}
 function setupParallax(){/* параллакс отключён: transform на ancestor ломает screen-вырез фона персонажа */}
-// тап по персу — золотая искра-вспышка + лёгкое вибро (без transform, чтобы не ломать вырез фона)
+// тап по персу — пружинный «флекс» + золотые искры + вибро
 function charReact(elm){
   const st=elm&&(elm.closest('.char-stage')); if(!st)return;
+  if(elm.classList){elm.classList.remove('flex');void elm.offsetWidth;elm.classList.add('flex');setTimeout(()=>elm.classList.remove('flex'),640);}
   const ring=document.createElement('div'); ring.className='char-ring-burst'; ring.style.borderColor='#ffd86b'; st.appendChild(ring); setTimeout(()=>ring.remove(),700);
   for(let i=0;i<10;i++){
     const ang=(Math.PI*2*i)/10, dist=28+Math.random()*30;
@@ -798,16 +793,13 @@ function renderHero(m){
     <div class="hero3d corner" style="${frameStyle}${auraStyle}">
       <div class="hero3d-glow"></div>
       <div class="rank-aura rank-aura-${s.rank}"></div>
-      <div class="hero3d-av parallax-host" style="position:relative;z-index:2">
-        <div class="sc sc-wall"></div>
-        <div class="sc sc-ray"></div>
-        <div class="sc sc-fog"></div>
-        <div class="sc sc-floor"></div>
-        <div class="sc sc-podium"></div>
-        <div class="sc sc-core"></div>
-        ${[0,1,2,3,4,5].map(i=>`<span class="sc-ember2" style="left:${14+i*13}%;animation-delay:${(i*0.8).toFixed(1)}s"></span>`).join('')}
+      <div class="hero3d-av" style="position:relative;z-index:2">
         ${buildCharLayers(s)}
-        <div class="sc sc-veil"></div>
+        <div class="sc sc-amb"></div>
+        <div class="sc sc-ray"></div>
+        <div class="sc sc-floor"></div>
+        ${[0,1,2,3,4,5].map(i=>`<span class="sc-ember2" style="left:${14+i*13}%;animation-delay:${(i*0.8).toFixed(1)}s"></span>`).join('')}
+        <div class="sc-frame"></div>
       </div>
       <div class="hero3d-lvl">LVL ${s.lvl||1}</div>
       <div class="hero3d-name">${esc(s.nick)}</div>
