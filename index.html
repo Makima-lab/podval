@@ -147,32 +147,75 @@
   @keyframes charBreathe{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-1.4%) scaleY(1.014)}}
   @keyframes charSway{0%,100%{transform:rotate(-.55deg)}50%{transform:rotate(.55deg)}}
   @keyframes layerIn{from{opacity:0;transform:translateY(7px) scale(.975)}to{opacity:1;transform:none}}
-  @keyframes charFlex{0%{transform:scale(1)}24%{transform:scale(1.045) rotate(-1.2deg)}55%{transform:scale(.985) rotate(.8deg)}100%{transform:scale(1)}}
-  @keyframes stageRot{to{transform:translateX(-50%) rotate(360deg)}}
   @keyframes floorPulse{0%,100%{opacity:.45;transform:translateX(-50%) scaleX(1)}50%{opacity:.7;transform:translateX(-50%) scaleX(1.12)}}
   @keyframes equipFlash{0%{opacity:0}18%{opacity:.85}100%{opacity:0}}
+  /* живой свет: персонаж «дышит» свечением (без transform — иначе ломается screen-вырез фона) */
+  @keyframes charLight{0%,100%{filter:brightness(1.0) contrast(1.16) drop-shadow(0 8px 16px rgba(0,0,0,.8))}50%{filter:brightness(1.14) contrast(1.19) drop-shadow(0 11px 20px rgba(0,0,0,.85))}}
   .char-stage{position:relative;width:100%;height:100%}
-  .char-anim{position:absolute;inset:0;transform-origin:50% 93%;will-change:transform;cursor:pointer;
-    animation:charBreathe 4.2s ease-in-out infinite,charSway 7.5s ease-in-out infinite}
-  .char-anim.flex{animation:charFlex .6s cubic-bezier(.34,1.56,.64,1)}
+  .char-anim{position:absolute;inset:0;cursor:pointer}
   .char-anim img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;
     filter:brightness(1.05) contrast(1.16) drop-shadow(0 8px 16px rgba(0,0,0,.8))}
-  .char-anim img.lyr{animation:layerIn .5s cubic-bezier(.22,1,.36,1) both}
-  .char-floor{position:absolute;left:50%;bottom:3%;width:64%;height:11%;transform:translateX(-50%);z-index:0;
-    background:radial-gradient(ellipse,rgba(212,175,55,.42),transparent 70%);filter:blur(8px);animation:floorPulse 4.2s ease-in-out infinite}
-  .char-ring{position:absolute;left:50%;bottom:1%;width:56%;height:15%;transform:translateX(-50%);z-index:0;border-radius:50%;
-    background:conic-gradient(from 0deg,transparent,rgba(212,175,55,.20),transparent 42%);animation:stageRot 16s linear infinite}
+  .char-anim img.lyr{animation:layerIn .5s cubic-bezier(.22,1,.36,1) both, charLight 4.6s ease-in-out infinite}
   .char-flash{position:absolute;inset:0;z-index:9;pointer-events:none;border-radius:18px;
     background:radial-gradient(ellipse at 50% 55%,rgba(212,175,55,.55),transparent 60%);animation:equipFlash .7s ease-out forwards}
-  @media (prefers-reduced-motion:reduce){.char-anim,.char-floor,.char-ring,.char-anim img.lyr,.char-spark{animation:none}}
+  @media (prefers-reduced-motion:reduce){.char-anim img.lyr,.char-spark{animation:none}}
 
-  /* ===== 3D-параллакс карточки + искры редкого шмота ===== */
-  .hero3d-av{perspective:760px}
-  .parallax-host .char-stage{transition:transform .14s ease-out;transform-style:preserve-3d}
+  /* ===== искры редкого шмота ===== */
   @keyframes sparkUp{0%{transform:translateY(0) scale(.5);opacity:0}18%{opacity:1}100%{transform:translateY(-86px) scale(1);opacity:0}}
   .char-spark{position:absolute;bottom:15%;width:5px;height:5px;border-radius:50%;z-index:4;pointer-events:none;
     box-shadow:0 0 6px currentColor;animation:sparkUp linear infinite}
   @media (prefers-reduced-motion:reduce){.parallax-host .char-stage{transition:none}}
+
+  /* ===== ПРЕМИУМ-СЦЕНА ГЕРОЯ: глубина, свет, туман, подиум ===== */
+  .hero3d-av{border-radius:16px;overflow:hidden;isolation:isolate;box-shadow:inset 0 0 0 1px rgba(212,175,55,.12)}
+  .sc{position:absolute;pointer-events:none;z-index:0}
+  .sc-wall{inset:0;background:
+    radial-gradient(120% 78% at 50% -8%,rgba(150,28,52,.40),transparent 56%),
+    radial-gradient(100% 60% at 50% 108%,rgba(212,175,55,.12),transparent 60%),
+    linear-gradient(180deg,#23101a 0%,#180b12 46%,#0a0608 100%)}
+  .sc-ray{left:50%;top:-8%;width:80%;height:92%;transform:translateX(-50%);z-index:0;filter:blur(3px);
+    background:radial-gradient(48% 60% at 50% 0%,rgba(255,228,168,.26),rgba(255,196,120,.07) 46%,transparent 70%);
+    clip-path:polygon(40% 0,60% 0,88% 100%,12% 100%);animation:rayBreath 6s ease-in-out infinite}
+  @keyframes rayBreath{0%,100%{opacity:.5}50%{opacity:.95}}
+  .sc-fog{inset:0;opacity:.55;mix-blend-mode:screen;
+    background:radial-gradient(38% 26% at 28% 72%,rgba(180,120,210,.16),transparent 60%),
+               radial-gradient(40% 28% at 74% 60%,rgba(120,60,170,.14),transparent 60%);
+    animation:fogDrift 15s ease-in-out infinite}
+  @keyframes fogDrift{0%,100%{transform:translateX(-4%)}50%{transform:translateX(4%)}}
+  .sc-floor{left:50%;bottom:0;width:124%;height:42%;transform:translateX(-50%);opacity:.75;
+    -webkit-mask-image:linear-gradient(180deg,transparent,#000 58%);mask-image:linear-gradient(180deg,transparent,#000 58%);
+    background:radial-gradient(60% 130% at 50% 100%,rgba(212,175,55,.28),transparent 60%),
+      repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(212,175,55,.13) 24px,rgba(212,175,55,.13) 25px)}
+  .sc-podium{left:50%;bottom:5%;width:64%;height:13%;transform:translateX(-50%);border-radius:50%;filter:blur(6px);
+    background:radial-gradient(ellipse,rgba(212,175,55,.55),rgba(200,16,46,.18) 56%,transparent 72%);animation:floorPulse 4.2s ease-in-out infinite}
+  .sc-core{left:50%;top:45%;width:62%;height:88%;transform:translate(-50%,-50%);border-radius:50%;
+    background:radial-gradient(ellipse,#000 0%,#000 33%,rgba(0,0,0,.72) 55%,transparent 78%)}
+  .sc-veil{inset:0;z-index:7;border-radius:16px;box-shadow:inset 0 0 64px rgba(0,0,0,.72),inset 0 0 16px rgba(0,0,0,.5)}
+  .sc-ember2{position:absolute;bottom:7%;width:3px;height:3px;border-radius:50%;background:#ffcf6b;z-index:6;box-shadow:0 0 6px #ffb347;animation:embers 4.6s linear infinite}
+
+  /* ===== ЗРЕЛИЩНЫЕ ЭФФЕКТЫ ДЕЙСТВИЙ ===== */
+  @keyframes ringBurst{0%{opacity:.9;transform:translateX(-50%) scale(.2)}100%{opacity:0;transform:translateX(-50%) scale(1.55)}}
+  .char-ring-burst{position:absolute;left:50%;top:42%;width:72%;aspect-ratio:1;transform:translateX(-50%);z-index:8;pointer-events:none;border:2px solid rgba(212,175,55,.85);border-radius:50%;box-shadow:0 0 18px rgba(212,175,55,.6);animation:ringBurst .65s ease-out forwards}
+  @keyframes burstP{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.3)}}
+  .burst-p{position:absolute;left:50%;top:46%;width:6px;height:6px;border-radius:50%;z-index:8;pointer-events:none;box-shadow:0 0 8px currentColor;animation:burstP .6s cubic-bezier(.22,1,.36,1) forwards}
+  @keyframes cardShake{0%,100%{transform:translateX(0)}18%{transform:translateX(-5px)}38%{transform:translateX(5px)}58%{transform:translateX(-3px)}78%{transform:translateX(3px)}}
+  .hero3d.shake{animation:cardShake .42s ease-in-out}
+  @media (prefers-reduced-motion:reduce){.sc-ray,.sc-fog,.sc-podium,.sc-ember2,.hero3d.shake{animation:none}}
+
+  /* ===== ОБЩИЙ ЛОСК UI: глубина карточек, кнопки, активная вкладка ===== */
+  .card,.stat{box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 4px 14px rgba(0,0,0,.35)}
+  .card.gilded{box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 0 1px rgba(212,175,55,.10),0 6px 20px rgba(0,0,0,.4)}
+  .stat .v{text-shadow:0 0 14px currentColor}
+  .btn{position:relative;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .12s,box-shadow .12s,filter .12s}
+  .btn:hover{filter:brightness(1.07)}
+  .btn:active{transform:translateY(1px) scale(.97)}
+  .btn.gold{box-shadow:0 4px 16px rgba(212,175,55,.32),inset 0 1px 0 rgba(255,255,255,.4)}
+  .btn.gold::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;transform:skewX(-20deg);
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);animation:btnSheen 4.5s ease-in-out infinite}
+  @keyframes btnSheen{0%,72%{left:-60%}88%,100%{left:130%}}
+  nav button.on{box-shadow:0 -2px 14px rgba(212,175,55,.22);animation:tabGlow 3s ease-in-out infinite}
+  @keyframes tabGlow{0%,100%{border-color:var(--goldDk)}50%{border-color:var(--gold)}}
+  @media (prefers-reduced-motion:reduce){.btn.gold::after,nav button.on{animation:none}}
 </style>
 
 </head>
@@ -474,10 +517,8 @@ function buildCharLayers(s){
       sparks+=`<i class="char-spark" style="color:${col};background:${col};left:${left.toFixed(1)}%;width:${sz.toFixed(1)}px;height:${sz.toFixed(1)}px;animation-duration:${dur.toFixed(2)}s;animation-delay:${del.toFixed(2)}s"></i>`;
     }
   }
-  // живой перс: дышит, покачивается, реагирует на тап (flex); кольцо-подиум + световое пятно под ногами
+  // перс в живой сцене (сцена/подиум рисуются в renderHero вокруг этой стопки)
   return `<div class="char-stage">
-    <div class="char-ring"></div>
-    <div class="char-floor"></div>
     ${sparks}
     <div class="char-anim" onclick="charReact(this)">${html}</div>
   </div>`;
@@ -485,32 +526,34 @@ function buildCharLayers(s){
 // высшая редкость среди надетого (для искр-ауры): показываем только эпик и выше
 const RAR_ORDER=['common','rare','epic','legend','mythic'];
 function topEquipRarity(s){let best=-1;Object.values(s.equipped||{}).forEach(id=>{const g=gearById(id);if(g){const i=RAR_ORDER.indexOf(g.r);if(i>best)best=i;}});return best>=2?RAR_ORDER[best]:null;}
-// 3D-параллакс: водишь пальцем/курсором по карточке — перс наклоняется (дыхание идёт отдельным слоем)
-function setupParallax(){
-  document.querySelectorAll('.parallax-host').forEach(host=>{
-    const stage=host.querySelector('.char-stage'); if(!stage)return;
-    const move=e=>{const r=host.getBoundingClientRect();const t=e.touches?e.touches[0]:e;
-      const px=(t.clientX-r.left)/r.width-0.5, py=(t.clientY-r.top)/r.height-0.5;
-      stage.style.transform=`rotateY(${(px*15).toFixed(2)}deg) rotateX(${(-py*13).toFixed(2)}deg)`;};
-    const reset=()=>{stage.style.transform='';};
-    host.addEventListener('pointermove',move);
-    host.addEventListener('pointerleave',reset);
-    host.addEventListener('pointerup',reset);
-  });
-}
-// тап по персу — короткая «вспышка/флекс» + вибро в Telegram
+function setupParallax(){/* параллакс отключён: transform на ancestor ломает screen-вырез фона персонажа */}
+// тап по персу — золотая искра-вспышка + лёгкое вибро (без transform, чтобы не ломать вырез фона)
 function charReact(elm){
-  if(!elm)return;
-  elm.classList.remove('flex'); void elm.offsetWidth; elm.classList.add('flex');
-  try{TG&&TG.HapticFeedback&&TG.HapticFeedback.impactOccurred('medium');}catch(e){}
-}
-// золотая вспышка по сцене при смене шмота
-function charFlash(){
-  document.querySelectorAll('.char-stage').forEach(st=>{
-    const f=document.createElement('div'); f.className='char-flash';
-    st.appendChild(f); setTimeout(()=>f.remove(),750);
-  });
+  const st=elm&&(elm.closest('.char-stage')); if(!st)return;
+  const ring=document.createElement('div'); ring.className='char-ring-burst'; ring.style.borderColor='#ffd86b'; st.appendChild(ring); setTimeout(()=>ring.remove(),700);
+  for(let i=0;i<10;i++){
+    const ang=(Math.PI*2*i)/10, dist=28+Math.random()*30;
+    const p=document.createElement('i'); p.className='burst-p';
+    p.style.cssText=`--dx:${(Math.cos(ang)*dist)|0}px;--dy:${(Math.sin(ang)*dist)|0}px;background:#ffd86b;color:#ffd86b`;
+    st.appendChild(p); setTimeout(()=>p.remove(),650);
+  }
   try{TG&&TG.HapticFeedback&&TG.HapticFeedback.impactOccurred('light');}catch(e){}
+}
+// зрелищный эффект смены шмота: вспышка + кольцо-волна + взрыв частиц цвета редкости + тряска
+function charFlash(rar){
+  const col=(rar&&RARITY[rar])?RARITY[rar].c:'#d4af37';
+  document.querySelectorAll('.char-stage').forEach(st=>{
+    const f=document.createElement('div'); f.className='char-flash'; st.appendChild(f); setTimeout(()=>f.remove(),750);
+    const ring=document.createElement('div'); ring.className='char-ring-burst'; ring.style.borderColor=col; st.appendChild(ring); setTimeout(()=>ring.remove(),700);
+    for(let i=0;i<16;i++){
+      const ang=(Math.PI*2*i)/16, dist=42+Math.random()*44;
+      const p=document.createElement('i'); p.className='burst-p';
+      p.style.cssText=`--dx:${(Math.cos(ang)*dist).toFixed(0)}px;--dy:${(Math.sin(ang)*dist).toFixed(0)}px;background:${col};color:${col}`;
+      st.appendChild(p); setTimeout(()=>p.remove(),650);
+    }
+  });
+  document.querySelectorAll('.hero3d').forEach(c=>{c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');});
+  try{TG&&TG.HapticFeedback&&TG.HapticFeedback.impactOccurred(rar==='mythic'||rar==='legend'?'heavy':'medium');}catch(e){}
 }
 // ===== СЕТЫ-КОСТЮМЫ (из Книги): бонус за полный комплект надетых предметов =====
 const SETS=[
@@ -755,7 +798,17 @@ function renderHero(m){
     <div class="hero3d corner" style="${frameStyle}${auraStyle}">
       <div class="hero3d-glow"></div>
       <div class="rank-aura rank-aura-${s.rank}"></div>
-      <div class="hero3d-av parallax-host" style="position:relative;z-index:2">${buildCharLayers(s)}</div>
+      <div class="hero3d-av parallax-host" style="position:relative;z-index:2">
+        <div class="sc sc-wall"></div>
+        <div class="sc sc-ray"></div>
+        <div class="sc sc-fog"></div>
+        <div class="sc sc-floor"></div>
+        <div class="sc sc-podium"></div>
+        <div class="sc sc-core"></div>
+        ${[0,1,2,3,4,5].map(i=>`<span class="sc-ember2" style="left:${14+i*13}%;animation-delay:${(i*0.8).toFixed(1)}s"></span>`).join('')}
+        ${buildCharLayers(s)}
+        <div class="sc sc-veil"></div>
+      </div>
       <div class="hero3d-lvl">LVL ${s.lvl||1}</div>
       <div class="hero3d-name">${esc(s.nick)}</div>
       ${pickedTitle?`<div style="font-size:11px;color:#c9a0ff;font-weight:700;margin-top:3px">「 ${esc(pickedTitle)} 」</div>`:''}
@@ -871,7 +924,7 @@ async function giveXp(id,amt){const s=STATE.slaves.find(x=>x.id===id);let xp=(s.
 async function setAvatar(id){const v=document.getElementById('avurl').value.trim();await updateSlave(id,{avatar:v});toast("Аватар обновлён");}
 async function giveGear(id){const gid=document.getElementById('givegear').value;if(!gid)return;const s=STATE.slaves.find(x=>x.id===id);await updateSlave(id,{inventory:[...(s.inventory||[]),gid]});const g=gearById(gid);await pushLog("🎁 «"+s.nick+"» получил ["+RARITY[g.r].n+"] "+g.n);toast("Выдано: "+g.n);}
 async function takeGear(id,gid){const s=STATE.slaves.find(x=>x.id===id);const g=gearById(gid);if(!confirm("Забрать «"+(g?g.n:'предмет')+"» у «"+s.nick+"»?"))return;const inv=[...(s.inventory||[])];const idx=inv.indexOf(gid);if(idx>-1)inv.splice(idx,1);const eq={...(s.equipped||{})};Object.keys(eq).forEach(k=>{if(eq[k]===gid)delete eq[k];});await updateSlave(id,{inventory:inv,equipped:eq});await pushLog("🧤 Госпожа забрала у «"+s.nick+"» "+(g?g.n:'предмет'));toast("Забрано");}
-async function equip(id,gid){const s=STATE.slaves.find(x=>x.id===id);const g=gearById(gid);const eq={...(s.equipped||{})};eq[g.slot]=gid;await saveEquip(id,eq);charFlash();toast("Надето: "+g.n);}
+async function equip(id,gid){const s=STATE.slaves.find(x=>x.id===id);const g=gearById(gid);const eq={...(s.equipped||{})};eq[g.slot]=gid;await saveEquip(id,eq);charFlash(g.r);toast("Надето: "+g.n);}
 async function unequip(id,slot){const s=STATE.slaves.find(x=>x.id===id);const eq={...(s.equipped||{})};delete eq[slot];await saveEquip(id,eq);charFlash();toast("Снято");}
 async function saveEquip(id,eq){
   if(STATE.isMistress){await updateSlave(id,{equipped:eq});return;}
