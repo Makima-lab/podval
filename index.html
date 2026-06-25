@@ -202,7 +202,9 @@
   .char-anim img.lyr-base{mix-blend-mode:screen}
   /* шмот: вырезанный PNG кладётся обычным режимом — тёмный латекс/ремни остаются плотными и видимыми */
   .char-anim img.lyr-gear{mix-blend-mode:normal;filter:brightness(1.12) contrast(1.22) saturate(1.15) drop-shadow(0 4px 10px rgba(0,0,0,.7))}
-  .char-anim img.lyr{animation:layerIn .5s cubic-bezier(.22,1,.36,1) both, charLight 4.6s ease-in-out infinite}
+  .char-anim img.lyr-base{animation:layerIn .5s cubic-bezier(.22,1,.36,1) both, charLight 4.6s ease-in-out infinite}
+  .char-anim img.lyr-gear{animation:gearIn .45s ease both, charLight 4.6s ease-in-out infinite}
+  @keyframes gearIn{from{opacity:0}to{opacity:1}}
   .char-flash{position:absolute;inset:0;z-index:9;pointer-events:none;border-radius:18px;mix-blend-mode:screen;
     background:radial-gradient(ellipse at 50% 55%,rgba(212,175,55,.6),transparent 60%);animation:equipFlash .7s ease-out forwards}
   @media (prefers-reduced-motion:reduce){.char-anim,.char-anim.flex,.char-anim img.lyr,.char-spark{animation:none}}
@@ -478,6 +480,7 @@ const GEAR=[
   {id:"g19",n:"Латексный комбез",slot:"body",r:"rare",str:0,def:4,spd:4,
    img:"https://raw.githubusercontent.com/Makima-lab/podval/main/LatexKostum_cut.png",
    pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/LatexKostum_aligned.png?v=2",
+   scale:0.85,
    desc:"Блестит как зеркало, скользит как угорь."},
   {id:"g23",n:"Кандалы Подвала",slot:"body",r:"epic",str:5,def:10,spd:-2,
    desc:"Тяжелее — значит покорнее. Защита за счёт свободы."},
@@ -486,6 +489,7 @@ const GEAR=[
   {id:"g20",n:"Сбруя раба",slot:"body",r:"epic",str:0,def:6,spd:0,
    img:"https://raw.githubusercontent.com/Makima-lab/podval/main/Portupey_cut.png",
    pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/Portupey_aligned.png?v=2",
+   scale:0.85,
    desc:"Кожаные ремни держат форму. Видно — кто тут чей."},
   {id:"g28",n:"Сбруя Лидера",slot:"body",r:"legend",str:12,def:10,spd:5,
    desc:"Золотые пряжки, кровавая кожа. Раб, дошедший до этого, уже не просто раб."},
@@ -546,7 +550,10 @@ function buildCharLayers(s){
   LAYER_ORDER.forEach((slot,i)=>{
     const g=eq[slot]?gearById(eq[slot]):null;
     if(g&&g.pose){ // вырезанный слой-картинка кладётся ровно поверх
-      html+=`<img src="${esc(g.pose)}" alt="" class="lyr lyr-gear" loading="lazy" decoding="async" style="z-index:${i+2};animation-delay:${(i+1)*0.05}s"/>`;
+      // индивидуальная подгонка слоя: scale (масштаб), dx/dy (сдвиг в %) — если у предмета заданы
+      const sc=g.scale||1, dx=g.dx||0, dy=g.dy||0;
+      const tf=(sc!==1||dx||dy)?`transform:translate(${dx}%,${dy}%) scale(${sc});transform-origin:center bottom;`:'';
+      html+=`<img src="${esc(g.pose)}" alt="" class="lyr lyr-gear" loading="lazy" decoding="async" style="z-index:${i+2};${tf}animation-delay:${(i+1)*0.05}s"/>`;
     }
   });
   // искры-аура: чем редче надетый шмот (эпик+), тем заметнее восходящие частицы его цвета
