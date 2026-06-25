@@ -211,9 +211,9 @@
   .hero3d-av{border-radius:16px;overflow:hidden;position:relative;
     background:#000;
     box-shadow:inset 0 0 0 1px rgba(212,175,55,.22),inset 0 0 90px rgba(0,0,0,.9)}
-  /* мягкая цветная подсветка-задник ПОД персонажем (не мешает screen, т.к. лежит ниже и приглушена) */
+  /* мягкая цветная подсветка-задник: свечение снизу-по-центру (там стоит перс), верх тёмный — без «прямоугольника» */
   .hero3d-av::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
-    background:radial-gradient(120% 80% at 50% 8%,rgba(122,10,28,.5),rgba(20,5,10,.7) 50%,#000 78%);
+    background:radial-gradient(75% 60% at 50% 78%,rgba(140,16,40,.6),rgba(40,8,16,.45) 45%,transparent 72%);
     mix-blend-mode:screen}
   .sc{position:absolute;pointer-events:none;mix-blend-mode:screen}
   .sc-ray{left:50%;top:-6%;width:72%;height:98%;transform:translateX(-50%);z-index:5;filter:blur(4px);
