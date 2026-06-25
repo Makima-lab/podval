@@ -72,13 +72,54 @@
   .modal{position:fixed;inset:0;background:#000b;display:grid;place-items:center;z-index:50;padding:20px;backdrop-filter:blur(3px)}
   .modal .box{position:relative;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--gold);border-radius:16px;padding:24px;max-width:350px;width:100%;animation:fadeUp .3s}
   .pill{display:inline-flex;align-items:center;gap:5px;background:rgba(212,175,55,.12);border:1px solid var(--goldDk);color:var(--gold);border-radius:20px;padding:3px 10px;font-size:10.5px;font-weight:700}
+  /* ===== ЛУТБОКСЫ ===== */
+  @keyframes boxShake{0%,100%{transform:translateY(0) rotate(0)}20%{transform:translateY(-3px) rotate(-4deg)}40%{transform:translateY(-1px) rotate(4deg)}60%{transform:translateY(-2px) rotate(-3deg)}80%{transform:translateY(-1px) rotate(2deg)}}
+  @keyframes lootPop{0%{opacity:0;transform:scale(.7) translateY(10px)}55%{transform:scale(1.06)}100%{opacity:1;transform:scale(1) translateY(0)}}
+  @keyframes lootGlow{0%,100%{box-shadow:0 0 14px var(--glow),inset 0 0 0 1px var(--ring)}50%{box-shadow:0 0 26px var(--glow),inset 0 0 0 1px var(--ring)}}
+  .lootbox{position:relative;cursor:pointer;text-align:center;padding:14px 6px 11px;border-radius:14px;
+    background:radial-gradient(120% 90% at 50% 0%,rgba(255,255,255,.06),transparent 60%),linear-gradient(180deg,var(--panel2),var(--panel));
+    border:1px solid var(--ring);transition:transform .16s,box-shadow .25s;animation:lootGlow 3.6s ease-in-out infinite}
+  .lootbox:active{transform:scale(.94)}
+  .lootbox:not(.locked):hover{transform:translateY(-3px) scale(1.03)}
+  .lootbox.locked{opacity:.42;filter:grayscale(.5);cursor:default;animation:none}
+  .lootbox.shaking{animation:boxShake .45s ease-in-out}
+  .lootbox-ico{font-size:38px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6)) drop-shadow(0 0 8px var(--glow))}
+  .lootbox-name{font-family:Cinzel;font-weight:700;font-size:11px;color:var(--text);margin-top:5px;letter-spacing:.3px}
+  .lootbox-cost{font-size:13px;font-weight:800;margin-top:3px}
+  .loot-drop{margin-top:13px;padding:16px;border-radius:14px;text-align:center;animation:lootPop .5s cubic-bezier(.22,1,.36,1) both;
+    background:radial-gradient(130% 100% at 50% 0%,color-mix(in srgb,var(--c) 22%,transparent),transparent 65%),linear-gradient(180deg,var(--panel2),var(--panel));
+    border:1px solid var(--c);box-shadow:0 0 24px color-mix(in srgb,var(--c) 45%,transparent)}
+  .loot-drop-rar{font-family:Cinzel;font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase}
+  .loot-drop-name{font-family:Cinzel;font-weight:900;font-size:20px;margin-top:4px;color:var(--text)}
+  /* ===== ИГРОВЫЕ КАПСУЛЫ ===== */
+  .gcard{position:relative;border-radius:16px;padding:15px;margin-bottom:13px;
+    background:radial-gradient(140% 100% at 50% -10%,rgba(212,175,55,.07),transparent 55%),linear-gradient(180deg,var(--panel2),var(--panel));
+    border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 6px 20px rgba(0,0,0,.4)}
+  .ghead{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .gico{width:46px;height:46px;flex:0 0 auto;border-radius:13px;display:grid;place-items:center;font-size:24px;
+    background:radial-gradient(circle at 50% 30%,rgba(212,175,55,.22),rgba(0,0,0,.3));border:1px solid var(--goldDk);
+    box-shadow:inset 0 0 12px rgba(0,0,0,.5),0 0 10px rgba(212,175,55,.12)}
+  .gtitle{font-family:Cinzel;font-weight:900;font-size:16px;color:var(--gold);letter-spacing:.5px}
+  .gsub{font-size:11px;color:var(--faint);margin-top:2px;line-height:1.35}
+  .gstage{text-align:center;margin:4px 0 12px;padding:14px 0;border-radius:13px;
+    background:radial-gradient(80% 120% at 50% 0%,rgba(0,0,0,.5),rgba(0,0,0,.2));
+    box-shadow:inset 0 2px 10px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.03);
+    filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}
+  .gbtn{width:100%;font-family:Cinzel;letter-spacing:.8px;box-shadow:0 4px 14px rgba(212,175,55,.25)}
+  .gres{text-align:center;margin-top:9px;min-height:18px;font-size:13px}
+  .gnum{width:52px;height:52px;border-radius:13px;font-size:20px;font-family:Cinzel;font-weight:900;color:var(--goldLt);cursor:pointer;
+    background:linear-gradient(180deg,rgba(122,10,28,.55),rgba(60,5,14,.55));border:1px solid var(--bloodDk);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 3px 8px rgba(0,0,0,.4);transition:transform .14s,box-shadow .2s}
+  .gnum:not(.locked):hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(200,16,46,.35);color:#fff}
+  .gnum:active{transform:scale(.92)}
+  .gnum.locked{opacity:.4;cursor:default}
   /* псевдо-3D карточка персонажа */
   .hero3d{position:relative;border-radius:18px;padding:22px 16px 18px;text-align:center;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#000 0%,#000 38%,#1a1218 78%,#0a0809 100%);border:1px solid var(--goldDk);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 40px rgba(0,0,0,.6)}
   .hero3d-glow{position:absolute;inset:0;background:conic-gradient(from 0deg at 50% 40%,transparent,rgba(212,175,55,.10),transparent 30%);animation:spin360 12s linear infinite;pointer-events:none}
   @keyframes spin360{to{transform:rotate(360deg)}}
-  .hero3d-av{position:relative;width:100%;max-width:340px;aspect-ratio:1/1;margin:0 auto;display:grid;place-items:center}
-  .hero3d-av img{width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;filter:brightness(1.04) contrast(1.18) drop-shadow(0 8px 16px rgba(0,0,0,.8))}
-  .hero3d-av::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:180px;height:24px;background:radial-gradient(ellipse,rgba(212,175,55,.45),transparent 70%);filter:blur(8px)}
+  .hero3d-av{position:relative;width:100%;max-width:330px;aspect-ratio:3/4;margin:0 auto;display:grid;place-items:end center}
+  .hero3d-av img{width:100%;height:100%;object-fit:contain;object-position:bottom center;mix-blend-mode:screen;filter:brightness(1.04) contrast(1.18) drop-shadow(0 8px 16px rgba(0,0,0,.8))}
+  .hero3d-av::after{content:"";position:absolute;bottom:3%;left:50%;transform:translateX(-50%);width:62%;height:18px;background:radial-gradient(ellipse,rgba(212,175,55,.5),transparent 70%);filter:blur(9px);z-index:1}
   .hero3d-silhouette{font-size:150px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.6))}
   .hero3d-lvl{position:absolute;top:14px;right:14px;background:linear-gradient(180deg,var(--goldLt),var(--gold));color:#2a1f06;font-family:Cinzel;font-weight:900;font-size:12px;padding:3px 10px;border-radius:20px;box-shadow:0 3px 10px rgba(0,0,0,.5)}
   .hero3d-name{font-family:Cinzel;font-size:19px;font-weight:900;margin-top:14px;letter-spacing:.5px}
@@ -155,7 +196,7 @@
   .char-anim{position:absolute;inset:0;transform-origin:50% 92%;cursor:pointer;will-change:transform;
     animation:charBreathe 4.2s ease-in-out infinite, charSway 7.5s ease-in-out infinite}
   .char-anim.flex{animation:charFlex .6s cubic-bezier(.34,1.56,.64,1)}
-  .char-anim img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;
+  .char-anim img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:bottom center;mix-blend-mode:screen;
     filter:brightness(1.05) contrast(1.16) drop-shadow(0 8px 16px rgba(0,0,0,.8))}
   .char-anim img.lyr{animation:layerIn .5s cubic-bezier(.22,1,.36,1) both, charLight 4.6s ease-in-out infinite}
   .char-flash{position:absolute;inset:0;z-index:9;pointer-events:none;border-radius:18px;mix-blend-mode:screen;
@@ -166,10 +207,14 @@
   @keyframes sparkUp{0%{transform:translateY(0) scale(.5);opacity:0}18%{opacity:1}100%{transform:translateY(-86px) scale(1);opacity:0}}
   .char-spark{position:absolute;bottom:15%;width:5px;height:5px;border-radius:50%;z-index:4;pointer-events:none;
     box-shadow:0 0 6px currentColor;animation:sparkUp linear infinite}
-  /* ===== СЦЕНА ГЕРОЯ: световые слои ПОВЕРХ чёрного (screen — на чёрном всегда видно) ===== */
+  /* ===== СЦЕНА ГЕРОЯ: ПОД персонажем — ЧИСТО ЧЁРНЫЙ (так screen выбивает чёрный фон jpg и шмота), цвет/свет — отдельными слоями поверх ===== */
   .hero3d-av{border-radius:16px;overflow:hidden;position:relative;
-    background:radial-gradient(120% 85% at 50% 0%,#2a1019,#160b11 52%,#080507);
-    box-shadow:inset 0 0 0 1px rgba(212,175,55,.16),inset 0 0 70px rgba(0,0,0,.55)}
+    background:#000;
+    box-shadow:inset 0 0 0 1px rgba(212,175,55,.22),inset 0 0 90px rgba(0,0,0,.9)}
+  /* мягкая цветная подсветка-задник ПОД персонажем (не мешает screen, т.к. лежит ниже и приглушена) */
+  .hero3d-av::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(120% 80% at 50% 8%,rgba(122,10,28,.5),rgba(20,5,10,.7) 50%,#000 78%);
+    mix-blend-mode:screen}
   .sc{position:absolute;pointer-events:none;mix-blend-mode:screen}
   .sc-ray{left:50%;top:-6%;width:72%;height:98%;transform:translateX(-50%);z-index:5;filter:blur(4px);
     background:radial-gradient(46% 58% at 50% 0%,rgba(255,228,165,.34),rgba(255,190,110,.09) 46%,transparent 70%);
@@ -1043,6 +1088,71 @@ function rollRarity(pity){
   if(rar==="mythic"){p.sinceRare=0;p.sinceEpic=0;p.sinceLegend=0;}
   return {rar,pity:p};
 }
+// ===== ЛУТБОКСЫ: сундуки за осколки. Каждый — свой пул редкостей и цена =====
+const LOOTBOXES=[
+  {id:"wood", n:"Сундук Раба",   icon:"📦", cost:30,  ring:"#9a8f7a", glow:"rgba(154,143,122,.5)",
+   odds:[["common",70],["rare",26],["epic",4]], desc:"Простая добыча. Шанс на редкое."},
+  {id:"gold", n:"Сундук Госпожи", icon:"🧰", cost:80,  ring:"#d4af37", glow:"rgba(212,175,55,.6)",
+   odds:[["common",40],["rare",40],["epic",17],["legend",3]], desc:"Щедрее. Эпик не редкость."},
+  {id:"blood",n:"Сундук Крови",   icon:"🗝", cost:160, ring:"#c8102e", glow:"rgba(200,16,46,.65)",
+   odds:[["rare",45],["epic",38],["legend",15],["mythic",2]], desc:"Только редкое и выше. Шанс на Мифик."},
+];
+function lootboxById(id){return LOOTBOXES.find(b=>b.id===id);}
+function rollLootRarity(odds){const roll=Math.random()*100;let acc=0;for(const[r,ch]of odds){acc+=ch;if(roll<acc)return r;}return odds[odds.length-1][0];}
+function renderLootboxes(){
+  const me=STATE.isMistress?null:STATE.slaves.find(x=>x.id===STATE.slaveId);
+  const authed=STATE.isMistress||(STATE.slaveAuth&&STATE.slaveAuth===STATE.slaveId);
+  const shards=STATE.isMistress?null:(me?me.shards||0:0);
+  const sub=STATE.isMistress
+    ? 'Открой раба ниже — подари ему сундук. Награда падает прямо в инвентарь.'
+    : (authed?`У тебя <b style="color:#5b8def">💎 ${shards}</b> осколков. Трать на сундуки.`:'🔒 Войди по PIN, чтобы открывать сундуки.');
+  const picker=STATE.isMistress?`<div class="card corner" style="margin-bottom:9px"><div class="lbl">Кому открыть сундук</div><select id="loottarget">${STATE.slaves.map(s=>`<option value="${s.id}">${esc(s.nick)} · 💎${s.shards||0}</option>`).join('')}</select></div>`:'';
+  return picker+`<div class="muted" style="font-size:12px;margin-bottom:11px">${sub}</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+  ${LOOTBOXES.map(b=>{
+    const afford=STATE.isMistress||(shards>=b.cost&&authed);
+    return `<div class="lootbox ${afford?'':'locked'}" style="--ring:${b.ring};--glow:${b.glow}" ${afford?`onclick="openLootbox('${b.id}')"`:''}>
+      <div class="lootbox-ico">${b.icon}</div>
+      <div class="lootbox-name">${b.n}</div>
+      <div class="lootbox-cost"><span style="color:#5b8def">💎 ${b.cost}</span></div>
+    </div>`;
+  }).join('')}
+  </div>
+  <div class="muted" style="font-size:10.5px;margin-top:8px;text-align:center">Чем дороже сундук — тем выше шанс редкого шмота.</div>
+  <div id="lootResult"></div>`;
+}
+async function openLootbox(boxId){
+  const box=lootboxById(boxId); if(!box)return;
+  let targetId;
+  if(STATE.isMistress){const sel=document.getElementById('loottarget');targetId=sel?Number(sel.value):null;}
+  else{if(!(STATE.slaveAuth&&STATE.slaveAuth===STATE.slaveId)){toast("Войди по PIN");return;}targetId=STATE.slaveId;}
+  const s=STATE.slaves.find(x=>x.id===targetId); if(!s){toast("Выбери раба");return;}
+  if(!STATE.isMistress&&(s.shards||0)<box.cost){toast("Мало осколков");return;}
+  const card=event.currentTarget; if(card){card.classList.remove('shaking');void card.offsetWidth;card.classList.add('shaking');}
+  try{TG&&TG.HapticFeedback&&TG.HapticFeedback.impactOccurred('medium');}catch(e){}
+  const rar=rollLootRarity(box.odds);
+  const g=pickGearByRarity(rar,s);
+  const patch={};
+  if(!STATE.isMistress||true){patch.shards=Math.max(0,(s.shards||0)-(STATE.isMistress?0:box.cost));}
+  let resHtml,logMsg;
+  if(g){
+    patch.inventory=[...new Set([...(s.inventory||[]),g.id])];
+    const col=RARITY[g.r].c;
+    resHtml=`<div class="loot-drop" style="--c:${col}"><div class="loot-drop-rar" style="color:${col}">[${RARITY[g.r].n}]</div><div class="loot-drop-name">${esc(g.n)}</div><div class="muted" style="font-size:11px;margin-top:3px">упало в инвентарь${STATE.isMistress?' к «'+esc(s.nick)+'»':''}</div></div>`;
+    logMsg="🎁 «"+s.nick+"» открыл "+box.n+" → ["+RARITY[g.r].n+"] "+g.n;
+    charFlash(g.r);
+  }else{
+    const back=Math.round(box.cost*0.6);
+    patch.shards=(patch.shards||s.shards||0)+back;
+    resHtml=`<div class="loot-drop" style="--c:#5b8def"><div class="loot-drop-rar" style="color:#5b8def">Дубликат</div><div class="loot-drop-name">+${back} 💎 осколков</div><div class="muted" style="font-size:11px;margin-top:3px">весь такой шмот уже есть — компенсация осколками</div></div>`;
+    logMsg="🎁 «"+s.nick+"» открыл "+box.n+" → дубликат, +"+back+" осколков";
+  }
+  await updateSlave(targetId,patch);
+  await pushLog(logMsg);
+  await fetchAll();
+  const out=document.getElementById('lootResult');
+  if(out){out.innerHTML=resHtml;out.scrollIntoView({behavior:'smooth',block:'nearest'});}
+}
 function renderWheel(m){
   const seg=360/WHEEL_ORDER.length;
   const tgt=STATE.isMistress?(STATE.slaves[0]):null;
@@ -1059,18 +1169,35 @@ function renderWheel(m){
     })()}
     <div id="winfo"></div>
     <div style="position:relative;width:290px;height:290px;margin:10px auto">
-      <div style="position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;border-top:22px solid var(--gold);z-index:5;filter:drop-shadow(0 0 4px var(--gold))"></div>
-      <svg id="wheelsvg" width="290" height="290" viewBox="0 0 200 200" style="transition:transform 4.4s cubic-bezier(.15,.7,.18,1);filter:drop-shadow(0 0 16px rgba(212,175,55,.25))">
-        <circle cx="100" cy="100" r="98" fill="none" stroke="var(--goldDk)" stroke-width="3"/>
-        ${WHEEL_ORDER.map((rar,i)=>{const a0=(i*seg-90)*Math.PI/180,a1=((i+1)*seg-90)*Math.PI/180;const x0=100+94*Math.cos(a0),y0=100+94*Math.sin(a0),x1=100+94*Math.cos(a1),y1=100+94*Math.sin(a1);const mid=(a0+a1)/2,tx=100+58*Math.cos(mid),ty=100+58*Math.sin(mid);const col=RARITY[rar].c;return `<g><path d="M100,100 L${x0},${y0} A94,94 0 0,1 ${x1},${y1} Z" fill="${col}" stroke="#0a0809" stroke-width="1.2"/><text x="${tx}" y="${ty}" fill="#0a0809" font-size="5.6" font-weight="800" text-anchor="middle" font-family="Manrope" transform="rotate(${mid*180/Math.PI+90},${tx},${ty})">${RARITY[rar].n}</text></g>`;}).join('')}
-        <circle cx="100" cy="100" r="15" fill="var(--panel)" stroke="var(--gold)" stroke-width="2.5"/>
-        <text x="100" y="104" fill="var(--gold)" font-size="13" font-weight="900" text-anchor="middle" font-family="Cinzel">М</text>
+      <div class="wheel-pin" style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);z-index:6">
+        <svg width="34" height="40" viewBox="0 0 34 40"><defs><linearGradient id="pinG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#f0d878"/><stop offset="1" stop-color="#8c7320"/></linearGradient></defs><path d="M17 38 L3 8 Q17 0 31 8 Z" fill="url(#pinG)" stroke="#5a4a14" stroke-width="1"/><circle cx="17" cy="9" r="4" fill="#2a1f06"/></svg>
+      </div>
+      <div style="position:absolute;inset:0;border-radius:50%;z-index:0;background:radial-gradient(circle at 50% 38%,rgba(212,175,55,.28),transparent 62%);filter:blur(10px);animation:floorGlow 4.6s ease-in-out infinite"></div>
+      <svg id="wheelsvg" width="290" height="290" viewBox="0 0 200 200" style="position:relative;z-index:1;transition:transform 4.6s cubic-bezier(.12,.72,.12,1);filter:drop-shadow(0 10px 22px rgba(0,0,0,.6))">
+        <defs>
+          <radialGradient id="rimG" cx="50%" cy="42%" r="60%"><stop offset="0" stop-color="#f6e7a8"/><stop offset=".45" stop-color="#d4af37"/><stop offset=".8" stop-color="#8c7320"/><stop offset="1" stop-color="#4a3c10"/></radialGradient>
+          <radialGradient id="hubG" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#2a2228"/><stop offset="1" stop-color="#0a0809"/></radialGradient>
+          <radialGradient id="glossG" cx="50%" cy="28%" r="55%"><stop offset="0" stop-color="rgba(255,255,255,.5)"/><stop offset=".5" stop-color="rgba(255,255,255,.08)"/><stop offset="1" stop-color="rgba(255,255,255,0)"/></radialGradient>
+          ${WHEEL_ORDER.map((rar,i)=>{const c=RARITY[rar].c;return `<radialGradient id="seg${i}" cx="50%" cy="50%" r="75%"><stop offset="0" stop-color="${c}" stop-opacity="1"/><stop offset="1" stop-color="${c}" stop-opacity=".62"/></radialGradient>`;}).join('')}
+        </defs>
+        <circle cx="100" cy="100" r="99" fill="url(#rimG)"/>
+        <circle cx="100" cy="100" r="92" fill="#0a0809"/>
+        ${WHEEL_ORDER.map((rar,i)=>{const a0=(i*seg-90)*Math.PI/180,a1=((i+1)*seg-90)*Math.PI/180;const x0=100+90*Math.cos(a0),y0=100+90*Math.sin(a0),x1=100+90*Math.cos(a1),y1=100+90*Math.sin(a1);const mid=(a0+a1)/2,tx=100+56*Math.cos(mid),ty=100+56*Math.sin(mid);return `<g><path d="M100,100 L${x0},${y0} A90,90 0 0,1 ${x1},${y1} Z" fill="url(#seg${i})" stroke="#0a0809" stroke-width="1.4"/><text x="${tx}" y="${ty}" fill="#0a0809" font-size="6" font-weight="900" text-anchor="middle" font-family="Cinzel" transform="rotate(${mid*180/Math.PI+90},${tx},${ty})" style="paint-order:stroke;stroke:rgba(255,255,255,.35);stroke-width:.4">${RARITY[rar].n}</text></g>`;}).join('')}
+        <circle cx="100" cy="100" r="90" fill="url(#glossG)" pointer-events="none"/>
+        <circle cx="100" cy="100" r="99" fill="none" stroke="#fff3c4" stroke-width=".8" opacity=".5"/>
+        <circle cx="100" cy="100" r="19" fill="url(#hubG)" stroke="url(#rimG)" stroke-width="3"/>
+        <text x="100" y="105" fill="#f0d878" font-size="15" font-weight="900" text-anchor="middle" font-family="Cinzel" style="filter:drop-shadow(0 0 3px rgba(212,175,55,.7))">М</text>
       </svg>
     </div>
-    ${STATE.isMistress?`<button id="wspin" class="tapbtn btn gold" style="width:100%;padding:15px;font-size:16px;font-family:Cinzel;letter-spacing:1px" onclick="spinWheel()">КРУТИТЬ КОЛЕСО СУДЬБЫ</button>`:''}
+    ${STATE.isMistress?`<button id="wspin" class="tapbtn btn gold" style="width:100%;padding:15px;font-size:16px;font-family:Cinzel;letter-spacing:1px;box-shadow:0 4px 16px rgba(212,175,55,.3)" onclick="spinWheel()">⟳ КРУТИТЬ КОЛЕСО СУДЬБЫ</button>`:''}
     <div id="wresult"></div>
+
+    <!-- ЛУТБОКСЫ -->
+    <div class="sect" style="margin-top:18px">🎁 Сундуки Госпожи</div>
+    ${renderLootboxes()}
+
     <div class="sect" style="margin-top:18px">Шансы дропа</div>
-    <div class="card corner">${WHEEL_ODDS.map(([r,ch])=>`<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px"><span style="color:${RARITY[r].c};font-weight:700">${RARITY[r].n}</span><span class="muted">${ch}%</span></div>`).join('')}
+    <div class="card corner">${WHEEL_ODDS.map(([r,ch])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px"><span style="display:flex;align-items:center;gap:7px;color:${RARITY[r].c};font-weight:700"><span style="width:9px;height:9px;border-radius:50%;background:${RARITY[r].c};box-shadow:0 0 6px ${RARITY[r].c}"></span>${RARITY[r].n}</span><span class="muted">${ch}%</span></div>`).join('')}
       <div class="muted" style="margin-top:8px;font-size:11px;border-top:1px solid var(--line);padding-top:8px">Гарант: Редкий ≤${PITY.rare} круток · Эпик ≤${PITY.epic} · Легендарка ≤${PITY.legend}. Дубль/нет предмета → осколки.</div>
     </div>`;
   renderWheelInfo();
@@ -1256,45 +1383,43 @@ function renderGames(m){
   m.innerHTML=`<div class="banner"><h1>ИГРЫ ПОДВАЛА</h1><div class="s">Развлекай Госпожу — копи Очки Боли. Их тратят в Магазине.</div></div>
     ${STATE.isMistress?'<div class="card muted" style="margin-bottom:10px">Это кабинет рабов: тут они фармят Очки Боли в мини-играх. Ты можешь посмотреть, но играют — рабы под своим PIN.</div>':''}
     ${!STATE.isMistress&&!authed?'<div class="card muted" style="margin-bottom:10px">🔒 Войди по PIN (кнопка вверху), чтобы играть и получать Очки Боли.</div>':''}
-    ${me?`<div class="countdown" style="margin-bottom:14px"><div class="t">🩸 ${me.pain||0}</div><div class="l">Очков Боли у «${esc(me.nick)}»</div></div>`:''}
+    ${me?`<div class="countdown" style="margin-bottom:16px"><div class="t">🩸 ${me.pain||0}</div><div class="l">Очков Боли у «${esc(me.nick)}»</div></div>`:''}
 
-    <div class="sect">🎲 Кости Судьбы</div>
-    <div class="card corner"><div class="muted" style="font-size:12px;margin-bottom:10px">Бросай 2 кубика. Чем больше сумма — тем больше Очков Боли. Дубль — джекпот! Раз в 30 мин.</div>
-      <div id="diceArea" style="text-align:center;font-size:40px;margin:6px 0">🎲 🎲</div>
-      <button class="tapbtn btn gold" style="width:100%;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="playDice()">Бросить кости</button>
-      <div id="diceRes" style="text-align:center;margin-top:8px;min-height:18px"></div>
+    <div class="gcard">
+      <div class="ghead"><div class="gico">🎲</div><div><div class="gtitle">Кости Судьбы</div><div class="gsub">Чем больше сумма — тем больше Боли. Дубль — джекпот! · 30 мин</div></div></div>
+      <div id="diceArea" class="gstage" style="font-size:52px;letter-spacing:14px">🎲🎲</div>
+      <button class="tapbtn btn gold gbtn" style="${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="playDice()">Бросить кости</button>
+      <div id="diceRes" class="gres"></div>
     </div>
 
-    <div class="sect">🔮 Число Госпожи</div>
-    <div class="card corner"><div class="muted" style="font-size:12px;margin-bottom:10px">Госпожа загадала число 1–5. Угадай — большой куш Очков Боли. Раз в 30 мин.</div>
-      <div style="display:flex;gap:7px;justify-content:center;margin-bottom:8px">${[1,2,3,4,5].map(n=>`<button class="tapbtn btn" style="width:48px;height:48px;font-size:18px;font-family:Cinzel;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="playGuess(${n})">${n}</button>`).join('')}</div>
-      <div id="guessRes" style="text-align:center;min-height:18px"></div>
+    <div class="gcard">
+      <div class="ghead"><div class="gico">🔮</div><div><div class="gtitle">Число Госпожи</div><div class="gsub">Госпожа загадала 1–5. Угадай — большой куш · 30 мин</div></div></div>
+      <div style="display:flex;gap:9px;justify-content:center;margin:12px 0 4px">${[1,2,3,4,5].map(n=>`<button class="tapbtn gnum ${authed?'':'locked'}" ${authed?'':'disabled'} onclick="playGuess(${n})">${n}</button>`).join('')}</div>
+      <div id="guessRes" class="gres"></div>
     </div>
 
-    <div class="sect">🎰 Однорукая Госпожа</div>
-    <div class="card corner"><div class="muted" style="font-size:12px;margin-bottom:10px">Три барабана. Совпадение — Очки Боли. Три короны 👑 — джекпот! Раз в 30 мин.</div>
-      <div id="slotArea" style="text-align:center;font-size:46px;letter-spacing:8px;margin:6px 0;font-family:Cinzel">🎰 🎰 🎰</div>
-      <button class="tapbtn btn gold" style="width:100%;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="playSlots()">Крутить барабаны</button>
-      <div id="slotRes" style="text-align:center;margin-top:8px;min-height:18px"></div>
+    <div class="gcard">
+      <div class="ghead"><div class="gico">🎰</div><div><div class="gtitle">Однорукая Госпожа</div><div class="gsub">Совпадение — Боль. Три короны 👑 — джекпот! · 30 мин</div></div></div>
+      <div id="slotArea" class="gstage gslot" style="font-size:46px;letter-spacing:6px">🎰 🎰 🎰</div>
+      <button class="tapbtn btn gold gbtn" style="${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="playSlots()">Крутить барабаны</button>
+      <div id="slotRes" class="gres"></div>
     </div>
 
-    <div class="sect">🃏 21 Госпожи</div>
-    <div class="card corner" id="bjCard">
-      ${bjState?renderBjInner():`<div class="muted" style="font-size:12px;margin-bottom:10px">Набирай карты ближе к 21, но не перебери. 21 ровно — «Очко», максимум Боли! Раз в 40 мин.</div>
-      <button class="tapbtn btn gold" style="width:100%;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="startBj()">Сдать карты</button>`}
+    <div class="gcard" id="bjCard">
+      <div class="ghead"><div class="gico">🃏</div><div><div class="gtitle">21 Госпожи</div><div class="gsub">Набери ближе к 21, не перебери. 21 ровно — максимум Боли · 40 мин</div></div></div>
+      ${bjState?renderBjInner():`<button class="tapbtn btn gold gbtn" style="${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="startBj()">Сдать карты</button>`}
     </div>
 
-    <div class="sect">🧠 Викторина: Лор Подвала</div>
-    <div class="card corner" id="quizCard">
-      ${quizState?renderQuizInner():`<div class="muted" style="font-size:12px;margin-bottom:10px">5 вопросов о подвале. За каждый верный — Очки Боли. Раз в 2 часа.</div>
-      <button class="tapbtn btn gold" style="width:100%;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="startQuiz()">Начать викторину</button>`}
+    <div class="gcard" id="quizCard">
+      <div class="ghead"><div class="gico">🧠</div><div><div class="gtitle">Викторина: Лор Подвала</div><div class="gsub">5 вопросов. За каждый верный — Очки Боли · 2 часа</div></div></div>
+      ${quizState?renderQuizInner():`<button class="tapbtn btn gold gbtn" style="${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="startQuiz()">Начать викторину</button>`}
     </div>
 
-    <div class="sect">🃏 Жребий Госпожи</div>
-    <div class="card corner"><div class="muted" style="font-size:12px;margin-bottom:10px">Тяни карту судьбы. Госпожа решит твою участь: милость, дар или кара. Раз в день.</div>
-      <div id="fateArea" style="text-align:center;font-size:54px;margin:10px 0;font-family:Cinzel;min-height:60px;transition:transform .3s">🂠</div>
-      <button class="tapbtn btn gold" style="width:100%;${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="playFate()">Тянуть жребий</button>
-      <div id="fateRes" style="text-align:center;margin-top:10px;min-height:18px"></div>
+    <div class="gcard">
+      <div class="ghead"><div class="gico">🂠</div><div><div class="gtitle">Жребий Госпожи</div><div class="gsub">Тяни карту судьбы: милость, дар или кара · раз в день</div></div></div>
+      <div id="fateArea" class="gstage" style="font-size:58px;min-height:70px;transition:transform .3s">🂠</div>
+      <button class="tapbtn btn gold gbtn" style="${authed?'':'opacity:.45'}" ${authed?'':'disabled'} onclick="playFate()">Тянуть жребий</button>
+      <div id="fateRes" class="gres"></div>
     </div>`;
 }
 // --- Жребий Судьбы ---
@@ -1805,6 +1930,20 @@ function renderCup(m){
   const rewardTiers=Object.keys(SEASON_REWARDS).map(Number).sort((a,b)=>a-b);
   m.innerHTML=`<div class="banner"><h1>ПУТЬ ПОКОРНОСТИ</h1><div class="s">Сезонный пропуск. Сила — в бесплатной дорожке, статус — в дорожке Госпожи.</div></div>
     <div class="countdown"><div class="t">${daysLeft()} ДНЕЙ</div><div class="l">до финала сезона · сброс таблицы и награды топам</div></div>
+
+    <!-- ОБЩИЙ РЕЙТИНГ: компактный топ-3 сразу видно, без скролла -->
+    ${(()=>{const top=[...r].sort((a,b)=>b.op-a.op).slice(0,3);if(!top.length)return'';const medals=['🥇','🥈','🥉'];const meId=STATE.isMistress?null:STATE.slaveId;const myPos=meId?([...r].sort((a,b)=>b.op-a.op).findIndex(x=>x.id===meId)):-1;return `<div class="card gilded corner" style="margin-bottom:11px;padding:13px 14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-family:Cinzel;font-weight:900;letter-spacing:1px;color:var(--gold);font-size:14px">♛ ОБЩИЙ РЕЙТИНГ</div>
+        <div class="muted" style="font-size:10px;text-transform:uppercase;letter-spacing:1px">всего рабов: ${r.length}</div>
+      </div>
+      ${top.map((s,i)=>`<div style="display:flex;align-items:center;gap:11px;padding:7px 0${i<top.length-1?';border-bottom:1px solid var(--line)':''}">
+        <div style="font-size:19px;width:26px;text-align:center;filter:drop-shadow(0 0 6px rgba(212,175,55,.45))">${medals[i]}</div>
+        <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(s.nick)}</div><div style="font-size:10.5px;color:var(--goldLt)">${RANKS[s.rank].icon} ${RANKS[s.rank].n}</div></div>
+        <div style="font-family:Cinzel;font-weight:900;font-size:17px;color:${i===0?'var(--gold)':'var(--blood)'}">${s.op}<span style="font-size:9px;color:var(--faint);margin-left:3px">ОП</span></div>
+      </div>`).join('')}
+      ${(myPos>=3)?`<div style="margin-top:9px;padding-top:9px;border-top:1px solid var(--goldDk);display:flex;align-items:center;gap:11px"><div style="font-family:Cinzel;font-weight:900;width:26px;text-align:center;color:var(--gold)">${myPos+1}</div><div style="flex:1;font-weight:800;font-size:13px;color:var(--goldLt)">Ты</div><div style="font-family:Cinzel;font-weight:900;color:var(--blood)">${r.find(x=>x.id===meId).op}<span style="font-size:9px;color:var(--faint);margin-left:3px">ОП</span></div></div>`:''}
+    </div>`;})()}
 
     ${STATE.isMistress?`<div class="card corner"><div class="lbl">Чей пропуск</div><select id="seasontarget" onchange="render()">${STATE.slaves.map(s=>`<option value="${s.id}" ${tgt&&s.id===tgt.id?'selected':''}>${esc(s.nick)}</option>`).join('')}</select></div>`:''}
     ${tgt?`<div class="card corner" style="margin-bottom:6px">
