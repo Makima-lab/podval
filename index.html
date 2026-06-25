@@ -117,9 +117,9 @@
   .hero3d{position:relative;border-radius:18px;padding:22px 16px 18px;text-align:center;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#000 0%,#000 38%,#1a1218 78%,#0a0809 100%);border:1px solid var(--goldDk);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 40px rgba(0,0,0,.6)}
   .hero3d-glow{position:absolute;inset:0;background:conic-gradient(from 0deg at 50% 40%,transparent,rgba(212,175,55,.10),transparent 30%);animation:spin360 12s linear infinite;pointer-events:none}
   @keyframes spin360{to{transform:rotate(360deg)}}
-  .hero3d-av{position:relative;width:100%;max-width:330px;aspect-ratio:4/5;margin:0 auto;display:grid;place-items:center}
-  .hero3d-av img{width:100%;height:100%;object-fit:contain;object-position:center bottom;mix-blend-mode:screen;filter:brightness(1.04) contrast(1.18) drop-shadow(0 8px 16px rgba(0,0,0,.8))}
-  .hero3d-av::after{content:"";position:absolute;bottom:4%;left:50%;transform:translateX(-50%);width:60%;height:16px;background:radial-gradient(ellipse,rgba(212,175,55,.5),transparent 70%);filter:blur(9px);z-index:1}
+  .hero3d-av{position:relative;width:100%;max-width:330px;aspect-ratio:1/1;margin:0 auto;display:grid;place-items:center;overflow:hidden}
+  .hero3d-av img{width:100%;height:100%;object-fit:contain;object-position:center center;mix-blend-mode:screen;filter:brightness(1.04) contrast(1.18) drop-shadow(0 8px 16px rgba(0,0,0,.8))}
+  .hero3d-av::after{content:"";position:absolute;bottom:2%;left:50%;transform:translateX(-50%);width:58%;height:15px;background:radial-gradient(ellipse,rgba(212,175,55,.5),transparent 70%);filter:blur(9px);z-index:1}
   .hero3d-silhouette{font-size:150px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.6))}
   .hero3d-lvl{position:absolute;top:14px;right:14px;background:linear-gradient(180deg,var(--goldLt),var(--gold));color:#2a1f06;font-family:Cinzel;font-weight:900;font-size:12px;padding:3px 10px;border-radius:20px;box-shadow:0 3px 10px rgba(0,0,0,.5)}
   .hero3d-name{font-family:Cinzel;font-size:19px;font-weight:900;margin-top:14px;letter-spacing:.5px}
@@ -196,7 +196,7 @@
   .char-anim{position:absolute;inset:0;transform-origin:50% 92%;cursor:pointer;will-change:transform;
     animation:charBreathe 4.2s ease-in-out infinite, charSway 7.5s ease-in-out infinite}
   .char-anim.flex{animation:charFlex .6s cubic-bezier(.34,1.56,.64,1)}
-  .char-anim img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;
+  .char-anim img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center center;
     filter:brightness(1.05) contrast(1.16) drop-shadow(0 8px 16px rgba(0,0,0,.8))}
   /* база-перс: чёрный фон jpg выбивается через screen */
   .char-anim img.lyr-base{mix-blend-mode:screen}
@@ -480,7 +480,6 @@ const GEAR=[
   {id:"g19",n:"Латексный комбез",slot:"body",r:"rare",str:0,def:4,spd:4,
    img:"https://raw.githubusercontent.com/Makima-lab/podval/main/LatexKostum_cut.png",
    pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/LatexKostum_aligned.png?v=2",
-   scale:0.85,
    desc:"Блестит как зеркало, скользит как угорь."},
   {id:"g23",n:"Кандалы Подвала",slot:"body",r:"epic",str:5,def:10,spd:-2,
    desc:"Тяжелее — значит покорнее. Защита за счёт свободы."},
@@ -489,7 +488,6 @@ const GEAR=[
   {id:"g20",n:"Сбруя раба",slot:"body",r:"epic",str:0,def:6,spd:0,
    img:"https://raw.githubusercontent.com/Makima-lab/podval/main/Portupey_cut.png",
    pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/Portupey_aligned.png?v=2",
-   scale:0.85,
    desc:"Кожаные ремни держат форму. Видно — кто тут чей."},
   {id:"g28",n:"Сбруя Лидера",slot:"body",r:"legend",str:12,def:10,spd:5,
    desc:"Золотые пряжки, кровавая кожа. Раб, дошедший до этого, уже не просто раб."},
@@ -549,11 +547,8 @@ function buildCharLayers(s){
   let html=`<img src="${esc(base)}" alt="" class="lyr lyr-base" loading="lazy" decoding="async" style="z-index:1"/>`;
   LAYER_ORDER.forEach((slot,i)=>{
     const g=eq[slot]?gearById(eq[slot]):null;
-    if(g&&g.pose){ // вырезанный слой-картинка кладётся ровно поверх
-      // индивидуальная подгонка слоя: scale (масштаб), dx/dy (сдвиг в %) — если у предмета заданы
-      const sc=g.scale||1, dx=g.dx||0, dy=g.dy||0;
-      const tf=(sc!==1||dx||dy)?`transform:translate(${dx}%,${dy}%) scale(${sc});transform-origin:center bottom;`:'';
-      html+=`<img src="${esc(g.pose)}" alt="" class="lyr lyr-gear" loading="lazy" decoding="async" style="z-index:${i+2};${tf}animation-delay:${(i+1)*0.05}s"/>`;
+    if(g&&g.pose){ // вырезанный слой-картинка кладётся ровно поверх, 1-в-1 с базой
+      html+=`<img src="${esc(g.pose)}" alt="" class="lyr lyr-gear" loading="lazy" decoding="async" style="z-index:${i+2};animation-delay:${(i+1)*0.05}s"/>`;
     }
   });
   // искры-аура: чем редче надетый шмот (эпик+), тем заметнее восходящие частицы его цвета
