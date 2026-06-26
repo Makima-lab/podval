@@ -118,7 +118,7 @@
   .hero3d-glow{position:absolute;inset:0;background:conic-gradient(from 0deg at 50% 40%,transparent,rgba(212,175,55,.10),transparent 30%);animation:spin360 12s linear infinite;pointer-events:none}
   @keyframes spin360{to{transform:rotate(360deg)}}
   .hero3d-av{position:relative;width:100%;max-width:330px;aspect-ratio:1/1;margin:0 auto;display:grid;place-items:center;overflow:hidden}
-  .hero3d-av img{width:100%;height:100%;object-fit:contain;object-position:center center;mix-blend-mode:screen;filter:brightness(1.04) contrast(1.18) drop-shadow(0 8px 16px rgba(0,0,0,.8))}
+  .hero3d-av img{width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;filter:brightness(1.04) contrast(1.18) drop-shadow(0 8px 16px rgba(0,0,0,.8))}
   .hero3d-av::after{content:"";position:absolute;bottom:2%;left:50%;transform:translateX(-50%);width:58%;height:15px;background:radial-gradient(ellipse,rgba(212,175,55,.5),transparent 70%);filter:blur(9px);z-index:1}
   .hero3d-silhouette{font-size:150px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.6))}
   .hero3d-lvl{position:absolute;top:14px;right:14px;background:linear-gradient(180deg,var(--goldLt),var(--gold));color:#2a1f06;font-family:Cinzel;font-weight:900;font-size:12px;padding:3px 10px;border-radius:20px;box-shadow:0 3px 10px rgba(0,0,0,.5)}
@@ -196,15 +196,9 @@
   .char-anim{position:absolute;inset:0;transform-origin:50% 92%;cursor:pointer;will-change:transform;
     animation:charBreathe 4.2s ease-in-out infinite, charSway 7.5s ease-in-out infinite}
   .char-anim.flex{animation:charFlex .6s cubic-bezier(.34,1.56,.64,1)}
-  .char-anim img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center center;
+  .char-anim img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;
     filter:brightness(1.05) contrast(1.16) drop-shadow(0 8px 16px rgba(0,0,0,.8))}
-  /* база-перс: чёрный фон jpg выбивается через screen */
-  .char-anim img.lyr-base{mix-blend-mode:screen}
-  /* шмот: вырезанный PNG кладётся обычным режимом — тёмный латекс/ремни остаются плотными и видимыми */
-  .char-anim img.lyr-gear{mix-blend-mode:normal;filter:brightness(1.12) contrast(1.22) saturate(1.15) drop-shadow(0 4px 10px rgba(0,0,0,.7))}
-  .char-anim img.lyr-base{animation:layerIn .5s cubic-bezier(.22,1,.36,1) both, charLight 4.6s ease-in-out infinite}
-  .char-anim img.lyr-gear{animation:gearIn .45s ease both, charLight 4.6s ease-in-out infinite}
-  @keyframes gearIn{from{opacity:0}to{opacity:1}}
+  .char-anim img.lyr{animation:layerIn .5s cubic-bezier(.22,1,.36,1) both, charLight 4.6s ease-in-out infinite}
   .char-flash{position:absolute;inset:0;z-index:9;pointer-events:none;border-radius:18px;mix-blend-mode:screen;
     background:radial-gradient(ellipse at 50% 55%,rgba(212,175,55,.6),transparent 60%);animation:equipFlash .7s ease-out forwards}
   @media (prefers-reduced-motion:reduce){.char-anim,.char-anim.flex,.char-anim img.lyr,.char-spark{animation:none}}
@@ -544,11 +538,11 @@ function buildCharLayers(s){
   const eq=s.equipped||{};
   const base=s.avatar||BASE_CHAR;
   // база: jpg с чёрным фоном → mix-blend-mode:screen выбивает чёрное на тёмной карточке
-  let html=`<img src="${esc(base)}" alt="" class="lyr lyr-base" loading="lazy" decoding="async" style="z-index:1"/>`;
+  let html=`<img src="${esc(base)}" alt="" class="lyr" loading="lazy" decoding="async" style="z-index:1"/>`;
   LAYER_ORDER.forEach((slot,i)=>{
     const g=eq[slot]?gearById(eq[slot]):null;
-    if(g&&g.pose){ // вырезанный слой-картинка кладётся ровно поверх, 1-в-1 с базой
-      html+=`<img src="${esc(g.pose)}" alt="" class="lyr lyr-gear" loading="lazy" decoding="async" style="z-index:${i+2};animation-delay:${(i+1)*0.05}s"/>`;
+    if(g&&g.pose){ // вырезанный слой кладётся ровно поверх 1-в-1; screen выбивает чёрный фон PNG
+      html+=`<img src="${esc(g.pose)}" alt="" class="lyr" loading="lazy" decoding="async" style="z-index:${i+2};animation-delay:${(i+1)*0.05}s"/>`;
     }
   });
   // искры-аура: чем редче надетый шмот (эпик+), тем заметнее восходящие частицы его цвета
