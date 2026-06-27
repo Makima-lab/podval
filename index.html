@@ -192,11 +192,17 @@
   @keyframes equipFlash{0%{opacity:0}18%{opacity:.85}100%{opacity:0}}
   @keyframes charFlex{0%{transform:scale(1)}24%{transform:scale(1.05) rotate(-1.4deg)}55%{transform:scale(.985) rotate(.9deg)}100%{transform:scale(1)}}
   @keyframes charLight{0%,100%{filter:brightness(1.0) contrast(1.16) drop-shadow(0 8px 16px rgba(0,0,0,.8))}50%{filter:brightness(1.16) contrast(1.2) drop-shadow(0 11px 20px rgba(0,0,0,.85))}}
-  .char-stage{position:relative;width:100%;height:100%}
-  .char-anim{position:absolute;inset:0;transform-origin:50% 92%;cursor:pointer;will-change:transform;
+  /* ===== ПЕРС СЛОЯМИ (переписано начисто): все слои = один квадратный бокс,
+     масштабируются ОДИНАКОВО независимо от размера исходника (1280 / 1024 — неважно).
+     Раньше object-fit:contain вписывал каждую картинку по-своему → шмот «разъезжался». ===== */
+  .char-stage{position:relative;width:100%;height:100%;display:grid;place-items:center}
+  /* квадратная сцена-бокс: занимает min(ширина,высота) и центрируется — общая система координат для ВСЕХ слоёв */
+  .char-anim{position:relative;aspect-ratio:1/1;width:100%;max-width:100%;max-height:100%;margin:auto;
+    transform-origin:50% 92%;cursor:pointer;will-change:transform;
     animation:charBreathe 4.2s ease-in-out infinite, charSway 7.5s ease-in-out infinite}
   .char-anim.flex{animation:charFlex .6s cubic-bezier(.34,1.56,.64,1)}
-  .char-anim img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:normal;
+  /* каждый слой растягивается на ВЕСЬ квадрат 1:1 (fill, не contain) → пиксель-в-пиксель с базой */
+  .char-anim img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;mix-blend-mode:normal;
     filter:brightness(1.05) contrast(1.16) drop-shadow(0 8px 16px rgba(0,0,0,.8))}
   .char-anim img.base-lyr{mix-blend-mode:screen}
   .char-anim img.lyr{animation:layerIn .5s cubic-bezier(.22,1,.36,1) both, charLight 4.6s ease-in-out infinite}
