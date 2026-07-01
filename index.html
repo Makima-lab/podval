@@ -469,7 +469,7 @@ const GEAR=[
    desc:"Холодная сталь. Первый знак принадлежности."},
   {id:"g18",n:"Шипованный ошейник",slot:"collar",r:"rare",str:5,def:1,spd:0,
    img:"https://raw.githubusercontent.com/Makima-lab/podval/main/Osheinik_cut.png",
-   pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/Osheinik_aligned.png?v=2",
+   pose:"https://raw.githubusercontent.com/Makima-lab/podval/main/Osheinik2_fit.png?v=1",
    desc:"Когда смотришь вниз — видишь шипы. Держит осанку идеально."},
   {id:"g21",n:"Браслеты Хаоса",slot:"collar",r:"epic",str:5,def:5,spd:2,
    desc:"Шипованная пара. Носятся на запястьях — символ ограниченной свободы."},
@@ -1967,11 +1967,21 @@ function passAgeGate(){try{localStorage.setItem('podval_age_ok','1');}catch(e){}
   initTelegram();
   if(!ageGatePassed()){showAgeGate();return;}
   await checkSession();await tryTokenLogin();await fetchAll();
-  // в Telegram: открыть перса того, кто зашёл (по tg_id). Действия — по PIN (безопасно).
-  if(STATE.inTelegram && STATE.tgUserId && !STATE.slaveId && !STATE.isMistress){
-    const me=STATE.slaves.find(s=>String(s.tg_id)===String(STATE.tgUserId));
-    if(me){STATE.slaveId=me.id;STATE.tab="hero";render();}
-    else{toast("Твой Telegram не привязан к персу — напиши боту /вход");}
+  // в Telegram: безопасный авто-вход без PIN — сервер проверяет подпись Telegram (bot_token) и возвращает PIN
+  if(STATE.inTelegram && TG && TG.initData && !STATE.isMistress){
+    try{
+      const {data,error}=await db.rpc('tg_miniapp_login',{p_init_data:TG.initData});
+      if(!error && data && data.ok){
+        STATE.slaveId=data.id; STATE.slaveAuth=data.id;
+        if(data.pin){try{sessionStorage.setItem('slavePin_'+data.id,data.pin);}catch(e){}}
+        STATE.tab="hero"; render();
+        toast("С возвращением, "+data.nick+" 🖤");
+      } else if(data && data.err==='not_linked'){
+        toast("Твой Telegram не привязан к персу — напиши боту /вход");
+      } else {
+        toast("Вход не удался — открой игру из бота (/вход)");
+      }
+    }catch(e){}
   }
 })();
 </script>
