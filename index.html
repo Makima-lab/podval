@@ -721,9 +721,9 @@ function render(){
   // режим раба по личной ссылке (?id=N) и не Госпожа
   const slaveMode = STATE.slaveId && !STATE.isMistress;
   const me = slaveMode ? STATE.slaves.find(x=>x.id===STATE.slaveId) : null;
-  if(slaveMode && me){ heroSel = me.id; if(!["hero","room","cup","arena","ach","shop","games"].includes(STATE.tab)) STATE.tab="hero"; }
+  if(slaveMode && me){ heroSel = me.id; if(!["hero","room","fellows","cup","arena","ach","shop","games"].includes(STATE.tab)) STATE.tab="hero"; }
   const TABS = slaveMode
-    ? [["hero","Мой перс"],["room","Комната"],["games","Игры"],["ach","Награды"],["shop","Магазин"],["arena","Арена"],["cup","Сезон"]]
+    ? [["hero","Мой перс"],["room","Комната"],["fellows","Собратья"],["games","Игры"],["ach","Награды"],["shop","Магазин"],["arena","Арена"],["cup","Сезон"]]
     : [["throne","Трон"],["hero","Перс"],["slaves","Рабы"],["wheel","Колесо"],["games","Игры"],["shop","Магазин"],["ach","Награды"],["arena","Арена"],["court","Суд"],["cup","Сезон"]];
   app.innerHTML=`
     <header>
@@ -745,7 +745,7 @@ function render(){
     <main id="main"></main>
     <footer>⛓ &nbsp; 18+ · ВСЁ ПО ФАНУ · СЛОВО ГОСПОЖИ — ЗАКОН &nbsp; ⛓</footer>`;
   const m=document.getElementById('main');
-  ({throne:renderThrone,hero:renderHero,room:renderRoom,slaves:renderSlaves,wheel:renderWheel,shop:renderShop,games:renderGames,ach:renderAch,arena:renderArena,court:renderCourt,cup:renderCup}[STATE.tab])(m);
+  ({throne:renderThrone,hero:renderHero,room:renderRoom,fellows:renderFellows,slaves:renderSlaves,wheel:renderWheel,shop:renderShop,games:renderGames,ach:renderAch,arena:renderArena,court:renderCourt,cup:renderCup}[STATE.tab])(m);
   setupParallax();
 }
 function go(t){STATE.tab=t;render();}
@@ -815,6 +815,77 @@ function renderGuide(){
 }
 function guideNav(d){guideIdx=Math.max(0,Math.min(GUIDE_SLIDES.length-1,guideIdx+d));renderGuide();}
 function closeGuide(){try{localStorage.setItem('podval_guide_seen','1');}catch(e){}const m=document.getElementById('guideModal');if(m)m.remove();}
+
+// ===== СОБРАТЬЯ: рабы взаимодействуют друг с другом =====
+function renderFellows(m){
+  const meId=STATE.slaveId;
+  const me=STATE.slaves.find(x=>x.id===meId);
+  const authed=STATE.slaveAuth===meId;
+  const others=[...STATE.slaves].filter(x=>x.id!==meId).sort((a,b)=>b.op-a.op);
+  const social=(STATE.log||[]).filter(l=>/🎁|🙇|👉|🎉|🫡|👋|⚔️/.test(l.msg)).slice(0,8);
+  m.innerHTML=`<div class="banner"><h1>СОБРАТЬЯ</h1><div class="s">Другие рабы подвала. Приветствуй, дари осколки, вызывай на бой.</div></div>
+    ${me?`<div class="card corner" style="text-align:center;margin-bottom:10px"><span class="muted" style="font-size:12px">У тебя для подарков: </span><b style="color:#5b8def">💎 ${me.shards||0}</b> <span class="muted" style="font-size:12px">осколков</span></div>`:''}
+    ${!authed?'<div class="card muted" style="margin-bottom:10px">🔒 Войди по PIN (кнопка вверху), чтобы приветствовать и дарить.</div>':''}
+    <div class="sect">Подвал · ${others.length} собратьев</div>
+    ${others.length===0?'<div class="card muted" style="text-align:center;padding:20px">Ты пока один в подвале.<br><span style="font-size:12px;color:var(--faint)">Скоро набегут другие.</span></div>':
+      others.map(s=>{
+        const pw=powerOf(s);const online=inactiveDays(s)===0;
+        return `<div class="card corner" style="display:flex;align-items:center;gap:11px;padding:11px 12px;margin-bottom:8px">
+          <div style="width:42px;height:42px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;font-size:21px;background:radial-gradient(circle,rgba(212,175,55,.12),transparent);border:1px solid var(--line)">${RANKS[s.rank].icon}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(s.nick)} ${online?'<span style="color:var(--good);font-size:10px">● онлайн</span>':''}</div>
+            <div style="font-size:11px;color:var(--gold)">${RANKS[s.rank].n}</div>
+            <div style="font-size:10.5px;color:var(--dim)">⚔ ${pw.total} · ${s.op} ОП · 🩸${s.pain||0}</div>
+          </div>
+          ${authed?`<div class="row" style="gap:5px;flex-wrap:nowrap;flex:0 0 auto">
+            <button class="tapbtn btn sm ghost" title="Приветствие" onclick="openSalute(${s.id})">🙇</button>
+            <button class="tapbtn btn sm ghost" title="Подарить осколки" onclick="openGift(${s.id})">🎁</button>
+            <button class="tapbtn btn sm" style="background:var(--bloodDk)" title="Вызвать на арену" onclick="challengeFellow(${s.id})">⚔️</button>
+          </div>`:''}
+        </div>`;
+      }).join('')}
+    ${social.length?`<div class="sect">Живая хроника</div>${social.map(l=>`<div class="card" style="padding:9px 12px;font-size:12.5px">${esc(l.msg)}</div>`).join('')}`:''}`;
+}
+function openSalute(toId){
+  const t=STATE.slaves.find(x=>x.id===toId);if(!t)return;
+  const kinds=[['bow','🙇 Поклониться'],['poke','👉 Потыкать'],['cheer','🎉 Подбодрить'],['salute','🫡 Отдать честь']];
+  const box=el(`<div class="modal" onclick="if(event.target===this)this.remove()"><div class="box corner"><div style="font-family:Cinzel;font-size:17px;font-weight:900;color:var(--gold);margin-bottom:12px">Приветствие «${esc(t.nick)}»</div><div style="display:grid;gap:8px">${kinds.map(([k,l])=>`<button class="tapbtn btn ghost" style="width:100%;text-align:left;padding:12px 14px" onclick="doSalute(${toId},'${k}');this.closest('.modal').remove()">${l}</button>`).join('')}</div></div></div>`);
+  document.body.appendChild(box);
+}
+async function doSalute(toId,kind){
+  if(STATE.slaveAuth!==STATE.slaveId)return;
+  const {data,error}=await db.rpc('slave_salute',{p_from:STATE.slaveId,p_pin:mySlavePin(),p_to:toId,p_kind:kind});
+  if(error||!data||!data.ok){toast(data&&data.err==='cooldown'?'Подожди пару минут между приветствиями':data&&data.err==='bad_pin'?'Войди по PIN заново':'Не вышло');return;}
+  toast('Отправлено 🖤');await fetchAll();
+}
+function openGift(toId){
+  const t=STATE.slaves.find(x=>x.id===toId);if(!t)return;
+  const me=STATE.slaves.find(x=>x.id===STATE.slaveId);
+  const box=el(`<div class="modal" onclick="if(event.target===this)this.remove()"><div class="box corner">
+    <div style="font-family:Cinzel;font-size:17px;font-weight:900;color:var(--gold);margin-bottom:4px">Подарок «${esc(t.nick)}»</div>
+    <div class="muted" style="margin-bottom:12px;font-size:12px">У тебя 💎 ${me?me.shards||0:0} осколков</div>
+    <input id="giftAmt" type="number" min="1" inputmode="numeric" placeholder="Сколько осколков?" style="margin-bottom:10px"/>
+    <div class="row" style="gap:6px;margin-bottom:14px">${[5,10,25,50].map(n=>`<button class="tapbtn btn sm ghost" onclick="document.getElementById('giftAmt').value=${n}">${n}</button>`).join('')}</div>
+    <button class="tapbtn btn gold" style="width:100%;font-family:Cinzel;letter-spacing:.5px" onclick="doGift(${toId},this)">Подарить 💎</button>
+  </div></div>`);
+  document.body.appendChild(box);
+}
+async function doGift(toId,btn){
+  const amt=parseInt(document.getElementById('giftAmt').value||'0',10);
+  if(!amt||amt<=0){toast('Введи количество');return;}
+  btn.disabled=true;btn.textContent='Дарим…';
+  const {data,error}=await db.rpc('slave_gift_shards',{p_from:STATE.slaveId,p_pin:mySlavePin(),p_to:toId,p_amount:amt});
+  if(error||!data||!data.ok){toast(data&&data.err==='no_shards'?'Мало осколков':data&&data.err==='bad_pin'?'Войди по PIN заново':'Не вышло подарить');btn.disabled=false;btn.textContent='Подарить 💎';return;}
+  const mm=document.querySelector('.modal');if(mm)mm.remove();
+  toast('Подарено 🎁');await fetchAll();
+}
+function challengeFellow(toId){
+  STATE.tab='arena'; render();
+  setTimeout(()=>{
+    if(fight){fight.a=STATE.slaveAuth||STATE.slaveId;fight.b=toId;if(fight.a===toId){const o=STATE.slaves.find(x=>x.id!==toId);if(o)fight.a=o.id;}fight.hpA=100;fight.hpB=100;fight.on=false;fight.over=null;fight.feed=[];fight.rageA=0;fight.rageB=0;fight.bleedA=0;fight.bleedB=0;render();}
+    toast('Соперник на арене выбран — начинай бой! ⚔️');
+  },80);
+}
 
 function renderThrone(m){
   const total=STATE.slaves.reduce((a,s)=>a+s.op,0);
