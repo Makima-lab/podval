@@ -216,6 +216,30 @@
   nav button.on{box-shadow:0 -2px 14px rgba(212,175,55,.22);animation:tabGlow 3s ease-in-out infinite}
   @keyframes tabGlow{0%,100%{border-color:var(--goldDk)}50%{border-color:var(--gold)}}
   @media (prefers-reduced-motion:reduce){.btn.gold::after,nav button.on{animation:none}}
+
+  /* ===== Онбординг: панель «Сегодня» + гид ===== */
+  .today-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+  .today-card{position:relative;display:flex;gap:10px;align-items:center;text-align:left;border:1px solid var(--line);border-radius:13px;padding:11px 12px;background:linear-gradient(180deg,var(--panel2),var(--panel));cursor:pointer;transition:.15s;overflow:hidden}
+  .today-card:active{transform:scale(.97)}
+  .today-card.ready{border-color:var(--goldDk);box-shadow:inset 0 0 0 1px rgba(212,175,55,.10)}
+  .today-card.ready::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:shimmer 3s linear infinite;background-size:200% auto}
+  .today-ic{font-size:24px;flex:0 0 auto;filter:drop-shadow(0 2px 5px rgba(0,0,0,.6))}
+  .today-tx b{display:block;font-size:13px;font-weight:800;letter-spacing:.2px}
+  .today-tx span{font-size:10.5px;color:var(--dim);line-height:1.25}
+  .today-badge{position:absolute;top:7px;right:9px;font-size:9px;font-weight:800;padding:2px 7px;border-radius:9px;letter-spacing:.3px}
+  .today-badge.go{background:rgba(70,201,138,.16);color:var(--good);border:1px solid rgba(70,201,138,.4)}
+  .today-badge.wait{background:rgba(138,106,110,.14);color:#a99}
+  .today-badge.lock{background:rgba(200,16,46,.12);color:#e08}
+  .helpbtn{width:30px;height:30px;border-radius:50%;border:1px solid var(--goldDk);background:rgba(212,175,55,.10);color:var(--gold);font-family:Cinzel;font-weight:900;font-size:15px;cursor:pointer;flex:0 0 auto;display:grid;place-items:center}
+  .guide-slide{animation:fadeUp .35s}
+  .guide-dots{display:flex;gap:6px;justify-content:center;margin:16px 0 4px}
+  .guide-dot{width:7px;height:7px;border-radius:50%;background:var(--line);transition:.2s}
+  .guide-dot.on{background:var(--gold);width:20px;border-radius:4px}
+  .guide-emoji{font-size:52px;text-align:center;filter:drop-shadow(0 6px 14px rgba(200,16,46,.4));margin-bottom:6px}
+  .quest-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .quest-row:last-child{border-bottom:none}
+  .quest-check{width:22px;height:22px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;font-size:12px;border:2px solid var(--line)}
+  .quest-check.done{background:var(--good);border-color:var(--good);color:#04120b}
 </style>
 
 </head>
@@ -709,6 +733,7 @@ function render(){
           <div class="brandname">ПОДВАЛ МАКИМЫ</div>
           <div class="brandsub">${STATE.isMistress?"Трон Госпожи · полная власть":(slaveMode&&me?("Твой перс · "+esc(me.nick)+(STATE.slaveAuth===me.id?" 🔓":" 🔒")):"Витрина · склони голову")}</div>
         </div>
+        <button class="helpbtn tapbtn" title="Как играть" onclick="showWelcomeGuide(true)" style="margin-right:8px">?</button>
         ${STATE.isMistress?`<button class="tapbtn btn sm ghost" onclick="logout()">Выйти</button>`
           :slaveMode?(STATE.slaveAuth===(me&&me.id)
             ?`<button class="tapbtn btn sm ghost" onclick="slaveLogout()">Выйти</button>`
@@ -724,6 +749,72 @@ function render(){
   setupParallax();
 }
 function go(t){STATE.tab=t;render();}
+
+// ===== ОНБОРДИНГ: панель «Сегодня в подвале» =====
+function todayMoscow(){return new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Moscow'});}
+function gameReady(s,key,cdMin){const cd=(s.game_cd||{})[key];if(!cd)return true;return (Date.now()-new Date(cd).getTime())>cdMin*60000;}
+function cdLeftMin(s,key,cdMin){const cd=(s.game_cd||{})[key];if(!cd)return 0;const left=cdMin*60000-(Date.now()-new Date(cd).getTime());return left<=0?0:Math.ceil(left/60000);}
+// список ежедневных дел раба с актуальным статусом
+function slaveDaily(s){
+  const anyGame=['dice','guess','slots','blackjack','quiz'].some(k=>gameReady(s,k,30));
+  const arenaOk=gameReady(s,'arena',10);
+  const spinElig=(s.op||0)>=150;
+  const spinUsed=(s.game_cd&&s.game_cd.freespin)===todayMoscow();
+  const tier=seasonTier(s.season_op||0);
+  const nr=nextRank(s.op);
+  return [
+    {ic:'🎲',t:'Игры',d:anyGame?'Фарми Очки Боли':'Скоро освежатся',tab:'games',st:anyGame?'go':'wait',badge:anyGame?'ИГРАЙ':'⏳'},
+    {ic:'⚔️',t:'Арена',d:arenaOk?'Победа: +15 ОП, +10 🩸':'Кулдаун '+cdLeftMin(s,'arena',10)+' мин',tab:'arena',st:arenaOk?'go':'wait',badge:arenaOk?'В БОЙ':'⏳'},
+    {ic:'🎡',t:'Колесо',d:!spinElig?'С ранга Pedigree Hound (150 ОП)':(spinUsed?'Уже крутил сегодня':'Бесплатная крутка дня!'),tab:'wheel',st:!spinElig?'lock':(spinUsed?'wait':'go'),badge:!spinElig?'🔒':(spinUsed?'✓':'КРУТИ')},
+    {ic:'🏆',t:'Награды',d:'Забери ачивки и медали',tab:'ach',st:'go',badge:'ЖМИ'},
+    {ic:'🛒',t:'Магазин',d:'Трать 🩸 на шмот',tab:'shop',st:'go',badge:'ЖМИ'},
+    {ic:'🎟',t:'Сезон',d:'Тир '+tier+(nr?' · до «'+nr.n+'» '+(nr.min-(s.op||0))+' ОП':' · высший ранг'),tab:'cup',st:'go',badge:'ПУТЬ'}
+  ];
+}
+function renderTodayPanel(s){
+  const items=slaveDaily(s);
+  const readyN=items.filter(i=>i.st==='go').length;
+  return `<div class="sect">☀ Сегодня в подвале ${readyN?'· <span style="color:var(--good)">'+readyN+' дел готово</span>':''}</div>
+    <div class="today-grid">${items.map(i=>`
+      <div class="today-card ${i.st==='go'?'ready':''}" onclick="go('${i.tab}')">
+        <span class="today-badge ${i.st}">${i.badge}</span>
+        <span class="today-ic">${i.ic}</span>
+        <span class="today-tx"><b>${i.t}</b><span>${i.d}</span></span>
+      </div>`).join('')}</div>`;
+}
+
+// ===== ГИД ДЛЯ НОВИЧКА =====
+const GUIDE_SLIDES=[
+  {e:'🖤',t:'Добро пожаловать в Подвал',x:'Ты — раб Госпожи Макимы. Здесь ты качаешь своего перса, куёшь славу, дерёшься и служишь. Всё по фану и по согласию.'},
+  {e:'💰',t:'Две валюты',x:'<b style="color:var(--blood)">ОП</b> — Очки Покорности, твой ранг и статус (даёт Госпожа за службу). <b style="color:var(--gold)">🩸 Очки Боли</b> — фармишь сам в играх и на арене, тратишь в Магазине на шмот.'},
+  {e:'🎮',t:'Чем заняться',x:'🎲 Играй в мини-игры, ⚔️ дерись на Арене, 🎡 крути Колесо Судьбы за шмотом. Смотри панель «Сегодня» — там всё, что можно сделать прямо сейчас.'},
+  {e:'🥷',t:'Наряжай перса',x:'Собирай редкий шмот и надевай его — он ложится прямо на персонажа. Меняй ауру, рамку и фон в Кастомизации. Собери полный сет — получишь бонус.'},
+  {e:'👑',t:'Расти и лезь в топ',x:'Копи ОП — поднимайся в рангах, открывай ачивки, бейся за место в Таблице покорности и корону сезона. Слово Госпожи — закон. Погнали!'}
+];
+let guideIdx=0;
+function showWelcomeGuide(force){
+  try{if(!force&&localStorage.getItem('podval_guide_seen')==='1')return;}catch(e){}
+  guideIdx=0;
+  const box=el(`<div class="modal" id="guideModal"><div class="box corner" style="max-width:360px"><div id="guideBody"></div></div></div>`);
+  document.body.appendChild(box);
+  renderGuide();
+}
+function renderGuide(){
+  const b=document.getElementById('guideBody');if(!b)return;
+  const sl=GUIDE_SLIDES[guideIdx], last=guideIdx===GUIDE_SLIDES.length-1;
+  b.innerHTML=`<div class="guide-slide">
+    <div class="guide-emoji">${sl.e}</div>
+    <div style="font-family:Cinzel;font-size:19px;font-weight:900;color:var(--gold);text-align:center;margin-bottom:8px">${sl.t}</div>
+    <div style="font-size:13.5px;line-height:1.6;color:var(--text);text-align:center;min-height:96px">${sl.x}</div>
+    <div class="guide-dots">${GUIDE_SLIDES.map((_,i)=>`<span class="guide-dot ${i===guideIdx?'on':''}"></span>`).join('')}</div>
+    <div class="row" style="gap:8px;margin-top:12px">
+      ${guideIdx>0?`<button class="tapbtn btn ghost" style="flex:1" onclick="guideNav(-1)">Назад</button>`:`<button class="tapbtn btn ghost" style="flex:1" onclick="closeGuide()">Пропустить</button>`}
+      <button class="tapbtn btn gold" style="flex:1.4;font-family:Cinzel;letter-spacing:.5px" onclick="${last?'closeGuide()':'guideNav(1)'}">${last?'Погнали! 🖤':'Далее'}</button>
+    </div>
+  </div>`;
+}
+function guideNav(d){guideIdx=Math.max(0,Math.min(GUIDE_SLIDES.length-1,guideIdx+d));renderGuide();}
+function closeGuide(){try{localStorage.setItem('podval_guide_seen','1');}catch(e){}const m=document.getElementById('guideModal');if(m)m.remove();}
 
 function renderThrone(m){
   const total=STATE.slaves.reduce((a,s)=>a+s.op,0);
@@ -790,6 +881,7 @@ function renderHero(m){
   const pickedTitle=(ctitle&&(s.titles||[]).includes(ctitle))?ctitle:null;
   m.innerHTML=`
     <div class="banner"><h1>ПЕРСОНАЖ</h1><div class="s">Наряжай, качай, собирай редкий шмот. Сила решает в бою.</div></div>
+    ${(!STATE.isMistress && STATE.slaveAuth===s.id)?renderTodayPanel(s):''}
     <div class="card corner"><div class="lbl">Чей перс</div>
       <select onchange="heroSel=Number(this.value);render()">${list.map(x=>`<option value="${x.id}" ${x.id===s.id?'selected':''}>${esc(x.nick)}</option>`).join('')}</select>
     </div>
@@ -1983,6 +2075,8 @@ function passAgeGate(){try{localStorage.setItem('podval_age_ok','1');}catch(e){}
       }
     }catch(e){}
   }
+  // гид для новичка при первом входе (раб или гость, один раз)
+  if(!STATE.isMistress){setTimeout(showWelcomeGuide,500);}
 })();
 </script>
 </body>
